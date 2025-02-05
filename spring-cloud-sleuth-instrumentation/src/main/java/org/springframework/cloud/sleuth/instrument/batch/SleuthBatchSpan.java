@@ -19,17 +19,28 @@ package org.springframework.cloud.sleuth.instrument.batch;
 import org.springframework.cloud.sleuth.docs.DocumentedSpan;
 import org.springframework.cloud.sleuth.docs.TagKey;
 
+/**
+ * 代表Spring Cloud Sleuth批次的Span
+ *
+ * <p>支持Spring Batch
+ */
 enum SleuthBatchSpan implements DocumentedSpan {
 
 	/**
-	 * Span created around a Job execution.
+	 * 创建一个围绕Job执行的Span
 	 */
 	BATCH_JOB_SPAN {
+		/**
+		 * @return 名称要求：任意字符串
+		 */
 		@Override
 		public String getName() {
 			return "%s";
 		}
 
+		/**
+		 * @return 只允许存在名为 {@code batch.job.name}, {@code batch.job.instanceId} 和 {@code batch.job.executionId}的键
+		 */
 		@Override
 		public TagKey[] getTagKeys() {
 			return JobTags.values();
@@ -39,13 +50,20 @@ enum SleuthBatchSpan implements DocumentedSpan {
 
 	/**
 	 * Span created around a Job execution.
+	 * 创建一个围绕Job执行步骤的Span
 	 */
 	BATCH_STEP_SPAN {
+		/**
+		 * @return 名称要求：任意字符串
+		 */
 		@Override
 		public String getName() {
 			return "%s";
 		}
 
+		/**
+		 * @return 只允许存在名为 {@code batch.step.name}，{@code batch.step.executionId}，{@code batch.step.type} 和 {@code batch.job.executionId}的键
+		 */
 		@Override
 		public TagKey[] getTagKeys() {
 			return StepTags.values();
@@ -56,7 +74,7 @@ enum SleuthBatchSpan implements DocumentedSpan {
 	enum JobTags implements TagKey {
 
 		/**
-		 * Name of the Spring Batch job.
+		 * Spring Batch Job名称
 		 */
 		JOB_NAME {
 			@Override
@@ -66,7 +84,7 @@ enum SleuthBatchSpan implements DocumentedSpan {
 		},
 
 		/**
-		 * ID of the Spring Batch job instance.
+		 * Spring Batch Job实例ID
 		 */
 		JOB_INSTANCE_ID {
 			@Override
@@ -76,7 +94,7 @@ enum SleuthBatchSpan implements DocumentedSpan {
 		},
 
 		/**
-		 * ID of the Spring Batch execution.
+		 * Spring Batch Job执行ID
 		 */
 		JOB_EXECUTION_ID {
 			@Override
@@ -90,7 +108,7 @@ enum SleuthBatchSpan implements DocumentedSpan {
 	enum StepTags implements TagKey {
 
 		/**
-		 * Name of the Spring Batch job.
+		 * Spring Batch Job Step 名称
 		 */
 		STEP_NAME {
 			@Override
@@ -100,7 +118,7 @@ enum SleuthBatchSpan implements DocumentedSpan {
 		},
 
 		/**
-		 * ID of the Spring Batch execution.
+		 * Spring Batch Job Step 执行ID
 		 */
 		STEP_EXECUTION_ID {
 			@Override
@@ -110,7 +128,7 @@ enum SleuthBatchSpan implements DocumentedSpan {
 		},
 
 		/**
-		 * Type of the Spring Batch job.
+		 * Spring Batch Job Step 类型
 		 */
 		STEP_TYPE {
 			@Override
@@ -120,7 +138,7 @@ enum SleuthBatchSpan implements DocumentedSpan {
 		},
 
 		/**
-		 * ID of the Spring Batch execution.
+		 * Spring Batch Job 执行ID
 		 */
 		JOB_EXECUTION_ID {
 			@Override

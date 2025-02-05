@@ -23,17 +23,23 @@ import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.TraceContext;
 
 /**
- * Brave implementation of a {@link Span.Builder}.
+ * 基于Brave实现的{@link Span.Builder}
  *
  * @author Marcin Grzejszczak
  * @since 3.0.0
  */
 class BraveSpanBuilder implements Span.Builder {
 
+	/**
+	 * Brave的Span
+	 */
 	brave.Span delegate;
 
 	TraceContextOrSamplingFlags parentContext;
 
+	/**
+	 * Brave的Tracer
+	 */
 	private final Tracer tracer;
 
 	private long startTimestamp;
@@ -49,12 +55,15 @@ class BraveSpanBuilder implements Span.Builder {
 
 	brave.Span span() {
 		if (this.delegate != null) {
+			// 直接返回已经创建Brave的Span
 			return this.delegate;
 		}
 		else if (this.parentContext != null) {
+			// 使用Brave的Tracer创建指定父级的Brave的Span
 			this.delegate = this.tracer.nextSpan(this.parentContext);
 		}
 		else {
+			// 使用Brave的Tracer创建不带父级的Brave的Span
 			this.delegate = this.tracer.nextSpan();
 		}
 		return this.delegate;
@@ -73,42 +82,49 @@ class BraveSpanBuilder implements Span.Builder {
 
 	@Override
 	public Span.Builder name(String name) {
+		// 设置Brave的Span的名称
 		span().name(name);
 		return this;
 	}
 
 	@Override
 	public Span.Builder event(String value) {
+		// 设置Brave的Span的事件名称
 		span().annotate(value);
 		return this;
 	}
 
 	@Override
 	public Span.Builder tag(String key, String value) {
+		// 设置Brave的Span的标签
 		span().tag(key, value);
 		return this;
 	}
 
 	@Override
 	public Span.Builder error(Throwable throwable) {
+		// 设置Brave的Span的异常信息
 		span().error(throwable);
 		return this;
 	}
 
 	@Override
 	public Span.Builder kind(Span.Kind kind) {
+		// 设置Brave的Span的类型
 		span().kind(kind != null ? brave.Span.Kind.valueOf(kind.toString()) : null);
 		return this;
 	}
 
 	@Override
 	public Span.Builder remoteServiceName(String remoteServiceName) {
+		// // 设置Brave的Span的远程服务名称
 		span().remoteServiceName(remoteServiceName);
 		return this;
 	}
 
 	@Override
 	public Span.Builder remoteIpAndPort(String ip, int port) {
+		// 设置Brave的Span的远程ip和端口
 		span().remoteIpAndPort(ip, port);
 		return this;
 	}
@@ -116,11 +132,14 @@ class BraveSpanBuilder implements Span.Builder {
 	@Override
 	public Span start() {
 		if (this.startTimestamp > 0) {
+			// 使用指定开始时间戳启动Span
 			span().start(this.startTimestamp);
 		}
 		else {
+			// 启动Span
 			span().start();
 		}
+		// 将Brave的Span转换为Sleuth的Span
 		return BraveSpan.fromBrave(this.delegate);
 	}
 

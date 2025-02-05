@@ -25,10 +25,11 @@ import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.util.concurrent.ListenableFuture;
 
 /**
- * AsyncListenableTaskExecutor that wraps all Runnable / Callable tasks into their trace
- * related representation.
+ * 用于支持跟踪{@link AsyncListenableTaskExecutor}的装饰类
  *
  * @author Marcin Grzejszczak
+ * @see TraceRunnable
+ * @see TraceCallable
  * @since 1.0.0
  */
 // public as most types in this package were documented for use
@@ -48,31 +49,37 @@ public class TraceAsyncListenableTaskExecutor implements AsyncListenableTaskExec
 
 	@Override
 	public ListenableFuture<?> submitListenable(Runnable task) {
+		// 包装为TraceRunnable来执行，通过TraceRunnable来执行会生成Span
 		return this.delegate.submitListenable(new TraceRunnable(this.tracer, this.spanNamer, task));
 	}
 
 	@Override
 	public <T> ListenableFuture<T> submitListenable(Callable<T> task) {
+		// 包装为TraceCallable来执行，通过TraceCallable来执行会生成Span
 		return this.delegate.submitListenable(new TraceCallable<>(this.tracer, this.spanNamer, task));
 	}
 
 	@Override
 	public void execute(Runnable task, long startTimeout) {
+		// 包装为TraceRunnable来执行，通过TraceRunnable来执行会生成Span
 		this.delegate.execute(new TraceRunnable(this.tracer, this.spanNamer, task), startTimeout);
 	}
 
 	@Override
 	public Future<?> submit(Runnable task) {
+		// 包装为TraceRunnable来执行，通过TraceRunnable来执行会生成Span
 		return this.delegate.submit(new TraceRunnable(this.tracer, this.spanNamer, task));
 	}
 
 	@Override
 	public <T> Future<T> submit(Callable<T> task) {
+		// 包装为TraceCallable来执行，通过TraceCallable来执行会生成Span
 		return this.delegate.submit(new TraceCallable<>(this.tracer, this.spanNamer, task));
 	}
 
 	@Override
 	public void execute(Runnable task) {
+		// 包装为TraceRunnable来执行，通过TraceRunnable来执行会生成Span
 		this.delegate.execute(new TraceRunnable(this.tracer, this.spanNamer, task));
 	}
 

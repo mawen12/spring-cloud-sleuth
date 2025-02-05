@@ -25,14 +25,9 @@ import java.lang.annotation.Target;
 import org.springframework.core.annotation.AliasFor;
 
 /**
- * Allows to create a new span around a public method. The new span will be either a child
- * of an existing span if a trace is already in progress or a new span will be created if
- * there was no previous trace.
- * <p>
- * Method parameters can be annotated with {@link SpanTag}, which will end in adding the
- * parameter value as a tag value to the span. The tag key will be the value of the
- * {@code key} annotation from {@link SpanTag}.
+ * 允许创建一个围绕在public方法的Span，如果进程中存在了Tracer，则以存在的Span作为其子级，或者是Trace不存在则创建一个新的Span。
  *
+ * <p>使用{@link SpanTag}注释方法参数，参数值最终作为标签值。标签键则取{@link SpanTag#key()}。
  *
  * @author Christian Schwerdtfeger
  * @since 1.2.0
@@ -43,15 +38,13 @@ import org.springframework.core.annotation.AliasFor;
 public @interface NewSpan {
 
 	/**
-	 * @return - The name of the span which will be created. Default is the annotated
-	 * method's name separated by hyphens.
+	 * @return - 被创建的Span名称，默认是用连字符分隔的方法的名称。
 	 */
 	@AliasFor("value")
 	String name() default "";
 
 	/**
-	 * @return - The name of the span which will be created. Default is the annotated
-	 * method's name separated by hyphens.
+	 * @return - 被创建的Span名称，默认是用连字符分隔的方法的名称。
 	 */
 	@AliasFor("name")
 	String value() default "";

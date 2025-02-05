@@ -21,13 +21,11 @@ import java.io.Closeable;
 import org.springframework.lang.Nullable;
 
 /**
- * Inspired by OpenZipkin Brave's {@code BaggageField}. Since some tracer implementations
- * require a scope to be wrapped around baggage, baggage must be closed so that the scope
- * does not leak. Some tracer implementations make baggage immutable (e.g. OpenTelemetry),
- * so when the value gets updated they might create new scope (others will return the same
- * one - e.g. OpenZipkin Brave).
+ * 灵感来自于 OpenZipkin Brave的{@code BaggageField}，由于某些跟踪器实现需要将范围包裹在baggage周围，
+ * 因此必须关闭baggage以免范围泄漏。某些跟踪器实现使baggage不可变（如OpenTelemetry)，因此当值更新时，
+ * 它们可能会创建新的范围（其它将返回相同的范围，如OpenZipkin Brave）。
  *
- * Represents a single baggage entry.
+ * <p>代表单件行李实体
  *
  * @author Marcin Grzejszczak
  * @since 3.0.0
@@ -35,7 +33,7 @@ import org.springframework.lang.Nullable;
 public interface BaggageInScope extends Closeable {
 
 	/**
-	 * @return name of the baggage entry
+	 * @return 行李实体的名称
 	 */
 	String name();
 
@@ -46,7 +44,8 @@ public interface BaggageInScope extends Closeable {
 	String get();
 
 	/**
-	 * Retrieves baggage from the given {@link TraceContext}.
+	 * 从给定的{@link TraceContext}检索行李实体的值
+	 *
 	 * @param traceContext context containing baggage
 	 * @return value of the baggage entry or {@code null} if not set.
 	 */
@@ -54,14 +53,16 @@ public interface BaggageInScope extends Closeable {
 	String get(TraceContext traceContext);
 
 	/**
-	 * Sets the baggage value.
+	 * 设置行李的值
+	 *
 	 * @param value to set
 	 * @return new scope
 	 */
 	BaggageInScope set(String value);
 
 	/**
-	 * Sets the baggage value for the given {@link TraceContext}.
+	 * 设置给定{@link TraceContext}的行李值
+	 *
 	 * @param traceContext context containing baggage
 	 * @param value to set
 	 * @return new scope
@@ -69,7 +70,8 @@ public interface BaggageInScope extends Closeable {
 	BaggageInScope set(TraceContext traceContext, String value);
 
 	/**
-	 * Sets the current baggage in scope.
+	 * 设置范围内的当前行李
+	 *
 	 * @return this in scope
 	 */
 	BaggageInScope makeCurrent();

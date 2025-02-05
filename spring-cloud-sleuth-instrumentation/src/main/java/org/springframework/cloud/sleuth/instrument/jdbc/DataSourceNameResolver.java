@@ -21,14 +21,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.sql.CommonDataSource;
 
 /**
- * {@link CommonDataSource} name resolver based on bean name.
+ * 基于bean名称的{@link CommonDataSource}名称解析器
  *
  * @author Arthur Gavlyukovskiy
  * @since 3.1.0
  */
 public class DataSourceNameResolver {
 
-	private final ConcurrentHashMap<CommonDataSource, String> cachedNames = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<CommonDataSource/* CommonDataSource */, String/* 该数据源的名称 */> cachedNames = new ConcurrentHashMap<>();
 
 	public void addDataSource(String name, CommonDataSource dataSource) {
 		this.cachedNames.put(dataSource, name);

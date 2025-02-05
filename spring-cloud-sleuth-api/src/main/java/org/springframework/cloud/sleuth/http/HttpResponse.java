@@ -19,9 +19,9 @@ package org.springframework.cloud.sleuth.http;
 import org.springframework.lang.Nullable;
 
 /**
- * This API is taken from OpenZipkin Brave.
+ * 此API取自OpenZipkin Brave。
  *
- * Abstract response type used for parsing and sampling. Represents an HTTP response.
+ * <p>用于解析和采样的抽象类型响应，代表一个HTTP响应
  *
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
@@ -36,7 +36,7 @@ public interface HttpResponse extends Response {
 	}
 
 	/**
-	 * @return HTTP method
+	 * @return HTTP 方法
 	 */
 	@Nullable
 	default String method() {
@@ -45,10 +45,9 @@ public interface HttpResponse extends Response {
 	}
 
 	/**
-	 * Returns an expression such as "/items/:itemId" representing an application
-	 * endpoint, conventionally associated with the tag key "http.route". If no route
-	 * matched, "" (empty string) is returned. {@code null} indicates this instrumentation
-	 * doesn't understand http routes.
+	 * 返回一个类似于{@code /items/:itemId/}的表达式，代表应用端点，常规与标签键"http.route"相关联。
+	 * 如果没有路由匹配，则返回{@code ""}空字符串。{@code null}代表该仪器不理解http路由
+	 *
 	 * @return HTTP route or {@code null} if not set.
 	 */
 	@Nullable
@@ -58,13 +57,13 @@ public interface HttpResponse extends Response {
 	}
 
 	/**
-	 * @return The HTTP status code or zero if unreadable.
+	 * @return HTTP状态吗，如果不可达为0
 	 */
 	int statusCode();
 
 	/**
 	 * @param header header name
-	 * @return HTTP header or {@code null} if not set.
+	 * @return HTTP标头值或 {@link null}当未设置时
 	 */
 	default String header(String header) {
 		return null;

@@ -19,6 +19,7 @@ package org.springframework.cloud.sleuth.instrument.annotation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.cloud.sleuth.annotation.SpanTag;
 import org.springframework.cloud.sleuth.annotation.TagValueExpressionResolver;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
@@ -26,8 +27,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
 
 /**
- * Uses SPEL to evaluate the expression. If an exception is thrown will return the
- * {@code toString()} of the parameter.
+ * 负责使用SPEL来解析{@link SpanTag#expression()}，如果处理过程中抛出异常，则使用参数值的{@link #toString()}作为替代
  *
  * @author Marcin Grzejszczak
  * @since 1.2.0
@@ -39,14 +39,19 @@ public class SpelTagValueExpressionResolver implements TagValueExpressionResolve
 	@Override
 	public String resolve(String expression, Object parameter) {
 		try {
+			// 获取表达式评估上下文
 			SimpleEvaluationContext context = SimpleEvaluationContext.forReadOnlyDataBinding().build();
+			// 构建表达式解析器
 			ExpressionParser expressionParser = new SpelExpressionParser();
+			// 解析生成表达式
 			Expression expressionToEvaluate = expressionParser.parseExpression(expression);
+			// 解析值
 			return expressionToEvaluate.getValue(context, parameter, String.class);
 		}
 		catch (Exception ex) {
 			log.error("Exception occurred while tying to evaluate the SPEL expression [" + expression + "]", ex);
 		}
+		// 解析失败时，使用参数的{@code toString}
 		return parameter.toString();
 	}
 

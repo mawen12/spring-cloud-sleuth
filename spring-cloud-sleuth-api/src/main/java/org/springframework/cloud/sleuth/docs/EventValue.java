@@ -17,7 +17,7 @@
 package org.springframework.cloud.sleuth.docs;
 
 /**
- * Event value representing a notable event in time.
+ * 事件值代表某个时间点的显著事件
  *
  * @author Marcin Grzejszczak
  * @since 3.1.0
@@ -25,7 +25,7 @@ package org.springframework.cloud.sleuth.docs;
 public interface EventValue {
 
 	/**
-	 * @return event value
+	 * @return 事件值
 	 */
 	String getValue();
 

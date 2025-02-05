@@ -24,7 +24,7 @@ import net.ttddyy.dsproxy.listener.logging.SLF4JLogLevel;
 import net.ttddyy.dsproxy.support.ProxyDataSourceBuilder;
 
 /**
- * Properties for datasource-proxy.
+ * 用于数据源代理的属性
  *
  * @author Arthur Gavlyukovskiy
  * @since 3.1.0
@@ -32,29 +32,29 @@ import net.ttddyy.dsproxy.support.ProxyDataSourceBuilder;
 public class DataSourceProxyProperties {
 
 	/**
-	 * Logging to use for logging queries.
+	 * 用于记录查询的日志
 	 */
 	private DataSourceProxyLogging logging = DataSourceProxyLogging.SLF4J;
 
 	/**
-	 * Query configuration.
+	 * 查询配置
 	 */
 	private Query query = new Query();
 
 	/**
-	 * Slow query configuration.
+	 * 慢查询配置
 	 */
 	private SlowQuery slowQuery = new SlowQuery();
 
 	/**
-	 * Use multiline output for logging query.
+	 * 是否使用多行输出来记录查询，默认是
 	 *
 	 * @see ProxyDataSourceBuilder#multiline()
 	 */
 	private boolean multiline = true;
 
 	/**
-	 * Use json output for logging query.
+	 * 是否使用json输出来记录查询，默认否
 	 *
 	 * @see ProxyDataSourceBuilder#asJson()
 	 */
@@ -101,7 +101,7 @@ public class DataSourceProxyProperties {
 	}
 
 	/**
-	 * Properties to configure query logging listener.
+	 * 用于配置查询日志监听器的配置
 	 *
 	 * @see ProxyDataSourceBuilder#logQueryToSysOut()
 	 * @see ProxyDataSourceBuilder#logQueryBySlf4j(SLF4JLogLevel, String)
@@ -111,17 +111,17 @@ public class DataSourceProxyProperties {
 	public static class Query {
 
 		/**
-		 * Enable logging all queries to the log.
+		 * 是否将所有查询记录到日志
 		 */
 		private boolean enableLogging = false;
 
 		/**
-		 * Name of query logger.
+		 * 对应查询的日志记录器的名称
 		 */
 		private String loggerName;
 
 		/**
-		 * Severity of query logger.
+		 * 查询记录器的级别，默认为DEBUG
 		 */
 		private String logLevel = "DEBUG";
 
@@ -152,7 +152,7 @@ public class DataSourceProxyProperties {
 	}
 
 	/**
-	 * Properties to configure slow query logging listener.
+	 * 用于配置慢查询日志监听器的配置
 	 *
 	 * @see ProxyDataSourceBuilder#logSlowQueryToSysOut(long, TimeUnit)
 	 * @see ProxyDataSourceBuilder#logSlowQueryBySlf4j(long, TimeUnit)
@@ -162,22 +162,22 @@ public class DataSourceProxyProperties {
 	public static class SlowQuery {
 
 		/**
-		 * Enable logging slow queries to the log.
+		 * 是否将慢查询记录到日志中，默认否
 		 */
 		private boolean enableLogging = false;
 
 		/**
-		 * Name of slow query logger.
+		 * 慢查询记录器的名称
 		 */
 		private String loggerName;
 
 		/**
-		 * Severity of slow query logger.
+		 * 满查询日志的级别
 		 */
 		private String logLevel = "WARN";
 
 		/**
-		 * Number of seconds to consider query as slow.
+		 * 认为查询很慢的秒数，默认为5分钟
 		 */
 		private long threshold = 300;
 
@@ -218,26 +218,29 @@ public class DataSourceProxyProperties {
 	/**
 	 * Query logging listener is the most used listener that logs executing query with
 	 * actual parameters to. You can pick one of the following proxy logging mechanisms.
+	 *
+	 * 查询日志监听器是最常用的监听器，它记录带有实际参数的执行查询。
+	 * 可以选择以下代理日志记录机制之一。
 	 */
 	public enum DataSourceProxyLogging {
 
 		/**
-		 * Log using System.out.
+		 * 使用{@link System#out}作为输出
 		 */
 		SYSOUT,
 
 		/**
-		 * Log using SLF4J.
+		 * 使用{@code SLF4J}作为输出
 		 */
 		SLF4J,
 
 		/**
-		 * Log using Commons.
+		 * 使用{@code Commons}作为输出
 		 */
 		COMMONS,
 
 		/**
-		 * Log using Java Util Logging.
+		 * 使用{@code Java Util Logging}作为输出
 		 */
 		JUL
 

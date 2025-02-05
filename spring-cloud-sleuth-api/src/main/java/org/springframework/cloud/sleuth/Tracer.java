@@ -22,42 +22,47 @@ import org.springframework.cloud.sleuth.propagation.Propagator;
 import org.springframework.lang.Nullable;
 
 /**
- * This API was heavily influenced by Brave. Parts of its documentation were taken
- * directly from Brave.
+ * 此API深受Brave影响，其部分文档直接取自Brave.
  *
- * Using a tracer, you can create a root span capturing the critical path of a request.
- * Child spans can be created to allocate latency relating to outgoing requests.
+ * <p>使用{@link Tracer}，可以创建一个根{@link Span}来捕获请求的关键路径。
+ * 可以创建子{@link Span}来分配与传出请求相关的延迟。
  *
- * When tracing single-threaded code, just run it inside a scoped span: <pre>{@code
- * // Start a new trace or a span within an existing trace representing an operation
- * ScopedSpan span = tracer.startScopedSpan("encode");
- * try {
- *   // The span is in "scope" so that downstream code such as loggers can see trace IDs
- *   return encoder.encode();
- * } catch (RuntimeException | Error e) {
- *   span.error(e); // Unless you handle exceptions, you might not know the operation failed!
- *   throw e;
- * } finally {
- *   span.end();
- * }
- * }</pre>
- *
- * When you need more features, or finer control, use the {@linkplain Span} type:
+ * <p>当跟踪单线程代码时，只需在范围内{@link Span}运行该代码：
  * <pre>{@code
- * // Start a new trace or a span within an existing trace representing an operation
- * Span span = tracer.nextSpan().name("encode").start();
- * // Put the span in "scope" so that downstream code such as loggers can see trace IDs
- * try (SpanInScope ws = tracer.withSpanInScope(span)) {
- *   return encoder.encode();
- * } catch (RuntimeException | Error e) {
- *   span.error(e); // Unless you handle exceptions, you might not know the operation failed!
- *   throw e;
- * } finally {
- *   span.end(); // note the scope is independent of the span. Always finish a span.
- * }
+ *	// Start a new trace or a span within an existing trace representing an operation
+ *	Scoped span = tracer.startScopedSpan("encode");
+ *	try {
+ *	   // The span is in "scope" so that downstream code such as loggers can see trace IDs
+ *	   return encoder.encode();
+ *	} catch (RuntimeException | Error e) {
+ *	   // Unless you handle exceptions, you might not known the operation failed!
+ *	   span.error(e);
+ *	   throw e;
+ *	} finally {
+ *	   // note the scope is independent of the span. Always finish a span.
+ * 	   span.end();
+ * 	}
  * }</pre>
  *
- * Both of the above examples report the exact same span on finish!
+ * <p>如果需要更多功能或更精细的控制时，请使用{@link Span} 类型：
+ * <pre>{@code
+ * 	// Start a new trace or a span within an existing trace representing an operation
+ * 	Span span = tracer.nextSpan().name("encode").start();
+ * 	// Put the span in "scope" so that downstream code such as loggers can see trace IDs
+ * 	try (SpanInScope ws = tracer.withSpanInScope(span)){
+ * 	    return encoder.encode();
+ * 	}
+ * 	catch (RuntimeException | Error e) {
+ * 		// Unless you handle exceptions, you might not known the operation failed!
+ * 	    span.error(e);
+ * 	    throw e;
+ * 	} finally {
+ * 	    // note the scope is independent of the span. Always finish a span.
+ * 	    span.end();
+ * 	}
+ * }</pre>
+ *
+ * 以上两个示例报告的完成跨度完全相同！
  *
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
@@ -69,80 +74,81 @@ import org.springframework.lang.Nullable;
 public interface Tracer extends BaggageManager {
 
 	/**
-	 * This creates a new span based on the current span in scope. If there's no such span
-	 * a new trace will be created.
-	 * @return a child span or a new trace if no span was present
+	 * 根据范围内的当前{@link Span}创建一个新的{@link Span}，如果此处没有任何{@link Span}，则创建一个新的{@link Tracer}
+	 *
+	 * @return 创建一个子级Span，如果不存在则创建一个新的Tracer.
 	 */
 	Span nextSpan();
 
 	/**
-	 * This creates a new span whose parent is {@link Span}. If parent is {@code null}
-	 * then will create act as {@link #nextSpan()}.
-	 * @param parent parent span
-	 * @return a child span for the given parent, {@code null} if context was empty.
+	 * 以指定{@link Span}作为父级创建一个新的{@link Span}, 如果父级为空，则行为类似于{@link #nextSpan()}
+	 *
+	 * @param parent 父级Span
+	 * @return 使用给定Span创建一个子级Span，如果不存在则创建一个新的Tracer.
 	 */
 	Span nextSpan(@Nullable Span parent);
 
 	/**
-	 * Makes the given span the "current span" and returns an object that exits that scope
-	 * on close. Calls to {@link #currentSpan()} and {@link #currentSpanCustomizer()} will
-	 * affect this span until the return value is closed.
+	 * 将给定{@link Span}设置为当前{@link Span}，并返回在关闭时退出该范围的对象。
+	 * 对{@link #currentSpan()} 和 {@link #currentSpanCustomizer()} 的调用将影响该{@link Span}，
+	 * 直到返回值关闭。
 	 *
-	 * The most convenient way to use this method is via the try-with-resources idiom.
+	 * <p>使用此方法最方便的方式是通过try-with-resources。
 	 *
-	 * When tracing in-process commands, prefer {@link #startScopedSpan(String)} which
-	 * scopes by default.
+	 * <p>当跟踪进程内命令时，最好使用{@link #startScopedSpan(String)}，默认情况下会指定范围。
 	 *
-	 * Note: While downstream code might affect the span, calling this method, and calling
-	 * close on the result have no effect on the input. For example, calling close on the
-	 * result does not finish the span. Not only is it safe to call close, you must call
-	 * close to end the scope, or risk leaking resources associated with the scope.
+	 * <p>虽然下游代码可能影响{@link Span}，但调用该方法以及对结果调用关闭方法不会对输入产生影响。
+	 * 例如：对结果调用关闭不会结束范围。不仅调用关闭是安全的，而且必须调用关闭来结束范围，否则可能会
+	 * 泄漏与范围相关的资源。
+	 *
 	 * @param span span to place into scope or null to clear the scope
 	 * @return scope with span in it
 	 */
 	Tracer.SpanInScope withSpan(@Nullable Span span);
 
 	/**
-	 * Returns a new child span if there's a {@link #currentSpan()} or a new trace if
-	 * there isn't. The result is the "current span" until {@link ScopedSpan#end()} ()} is
-	 * called.
+	 * 如果{@link #currentSpan()}存在则返回{@link Span}，否则创建一个新的{@link Tracer}。
+	 * 返回结果是当前{@link Span}直到调用{@link ScopedSpan#end()}。
 	 *
-	 * Here's an example: <pre>{@code
-	 * ScopedSpan span = tracer.startScopedSpan("encode");
-	 * try {
-	 *   // The span is in "scope" so that downstream code such as loggers can see trace IDs
-	 *   return encoder.encode();
-	 * } catch (RuntimeException | Error e) {
-	 *   span.error(e); // Unless you handle exceptions, you might not know the operation failed!
-	 *   throw e;
-	 * } finally {
-	 *   span.end();
-	 * }
+	 * <p>代码示例:
+	 * <pre>{@code
+	 * 	ScopedSpan span = tracer.startScopedSpan("encode");
+	 * 	try {
+	 * 	    return encoder.encode();
+	 * 	} catch (RuntimeException | Error e) {
+	 * 		// Unless you handle exceptions, you might not known the operation failed!
+	 * 	    span.error(e);
+	 * 	    throw e;
+	 * 	} finally {
+	 * 	    // note the scope is independent of the span. Always finish a span.
+	 * 	    span.end();
+	 * 	}
 	 * }</pre>
+	 *
 	 * @param name of the span in scope
 	 * @return span in scope
 	 */
 	ScopedSpan startScopedSpan(String name);
 
 	/**
-	 * In some cases (e.g. when dealing with
-	 * {@link Propagator#extract(Object, Propagator.Getter)}'s we want to create a span
-	 * that has not yet been started, yet it's heavily configurable (some options are not
-	 * possible to be set when a span has already been started). We can achieve that by
-	 * using a builder.
+	 * 用于在某些场景下处理{@link Propagator#extract(Object, Propagator.Getter)}时，
+	 * 想要创建一个尚未启动的{@link Span}，但它具有很强的可配置性(当span已经启动时，某些选项无法配置)。
+	 * 我们可以使用构建器来实现这一点。
+	 *
 	 * @return a span builder
 	 */
 	Span.Builder spanBuilder();
 
 	/**
-	 * Builder for {@link TraceContext}.
+	 * {@link TraceContext}的构建器
+	 *
 	 * @return a trace context builder
 	 */
 	TraceContext.Builder traceContextBuilder();
 
 	/**
-	 * Returns the {@link CurrentTraceContext}. Can be {@code null} so that we don't break
-	 * backward compatibility.
+	 * 返回{@link CurrentTraceContext}，可以为null，这样就不会破坏向后兼容性。
+	 *
 	 * @return current trace context
 	 */
 	@Nullable
@@ -151,22 +157,23 @@ public interface Tracer extends BaggageManager {
 	}
 
 	/**
-	 * Allows to customize the current span in scope.
+	 * 允许自定义范围的当前的{@link Span}.
+	 *
 	 * @return current span customizer
 	 */
 	@Nullable
 	SpanCustomizer currentSpanCustomizer();
 
 	/**
-	 * Retrieves the current span in scope or {@code null} if one is not available.
+	 * 检索范围内当前的{@link Span}，如果不存在者返回null。
+	 *
 	 * @return current span in scope
 	 */
 	@Nullable
 	Span currentSpan();
 
 	/**
-	 * Scope of a span. Needs to be closed so that resources are let go (e.g. MDC is
-	 * cleared).
+	 * {@link Span}的范围，需要调用{@link #close()}来释放资源，例如清理MDC
 	 */
 	interface SpanInScope extends Closeable {
 

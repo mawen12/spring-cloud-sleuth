@@ -22,12 +22,24 @@ import org.springframework.cloud.sleuth.Span;
 
 import static java.util.Objects.requireNonNull;
 
+/**
+ * 基于不可变的{@link AssertingSpan}实现
+ */
 class ImmutableAssertingSpan implements AssertingSpan {
 
+	/**
+	 * 可文档化的Span
+	 */
 	private final DocumentedSpan documentedSpan;
 
+	/**
+	 * 原始Span
+	 */
 	private final Span delegate;
 
+	/**
+	 * 原始Span启动状态标识
+	 */
 	boolean isStarted;
 
 	ImmutableAssertingSpan(DocumentedSpan documentedSpan, Span delegate) {
@@ -71,7 +83,9 @@ class ImmutableAssertingSpan implements AssertingSpan {
 
 	@Override
 	public AssertingSpan start() {
+		// 更新启动标识
 		this.isStarted = true;
+		// 使用父类方法进行启动
 		return AssertingSpan.super.start();
 	}
 

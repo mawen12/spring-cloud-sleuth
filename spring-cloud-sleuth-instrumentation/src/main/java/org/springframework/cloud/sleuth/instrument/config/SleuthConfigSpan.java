@@ -19,17 +19,28 @@ package org.springframework.cloud.sleuth.instrument.config;
 import org.springframework.cloud.sleuth.docs.DocumentedSpan;
 import org.springframework.cloud.sleuth.docs.TagKey;
 
+/**
+ * 代表Spring Cloud Sleuth Config的Span
+ *
+ * <p>支持Spring Cloud Config
+ */
 enum SleuthConfigSpan implements DocumentedSpan {
 
 	/**
-	 * Span created around an EnvironmentRepository.
+	 * 围绕{@link org.springframework.cloud.config.server.environment.EnvironmentRepository}创建的Span
 	 */
 	CONFIG_SPAN {
+		/**
+		 * @return 名称要求：find
+		 */
 		@Override
 		public String getName() {
 			return "find";
 		}
 
+		/**
+		 * @return 只允许存在{@code config.environment.class}和{@code config.environment.method}的键
+		 */
 		@Override
 		public TagKey[] getTagKeys() {
 			return Tags.values();
@@ -39,7 +50,7 @@ enum SleuthConfigSpan implements DocumentedSpan {
 	enum Tags implements TagKey {
 
 		/**
-		 * Implementation of the EnvironmentRepository.
+		 * {@link org.springframework.cloud.config.server.environment.EnvironmentRepository}的实现类
 		 */
 		ENVIRONMENT_CLASS {
 			@Override
@@ -49,7 +60,7 @@ enum SleuthConfigSpan implements DocumentedSpan {
 		},
 
 		/**
-		 * Method executed on the EnvironmentRepository.
+		 * {@link org.springframework.cloud.config.server.environment.EnvironmentRepository}的执行方法
 		 */
 		ENVIRONMENT_METHOD {
 			@Override

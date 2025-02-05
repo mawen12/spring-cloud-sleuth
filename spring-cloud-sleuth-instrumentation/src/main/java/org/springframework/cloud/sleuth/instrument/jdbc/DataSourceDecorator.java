@@ -19,7 +19,7 @@ package org.springframework.cloud.sleuth.instrument.jdbc;
 import javax.sql.DataSource;
 
 /**
- * Decorator for context {@link DataSource} beans.
+ * 用于上下文{@link DataSource} bean 的装饰类
  *
  * @author Arthur Gavlyukovskiy
  * @since 3.1.0
@@ -27,8 +27,8 @@ import javax.sql.DataSource;
 public interface DataSourceDecorator {
 
 	/**
-	 * Decorates given {@link DataSource} instance. Should either return wrapped
-	 * {@link DataSource} or same instance.
+	 * 装饰给定的{@link DataSource}实例，并返回原实例或包装后的实例
+	 *
 	 * @param beanName name of a bean
 	 * @param dataSource bean instance
 	 * @return decorated {@link DataSource} or given {@link DataSource} without changes.

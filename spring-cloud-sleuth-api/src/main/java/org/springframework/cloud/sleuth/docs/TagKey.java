@@ -19,7 +19,7 @@ package org.springframework.cloud.sleuth.docs;
 import java.util.Arrays;
 
 /**
- * Represents a tag key.
+ * 代表事件键
  *
  * @author Marcin Grzejszczak
  * @since 3.1.0
@@ -27,12 +27,13 @@ import java.util.Arrays;
 public interface TagKey {
 
 	/**
-	 * @return tag key
+	 * @return 事件键
 	 */
 	String getKey();
 
 	/**
-	 * Merges arrays of tags.
+	 * 合并的标签数组
+	 *
 	 * @param tags array of tags
 	 * @return a merged array of tags
 	 */

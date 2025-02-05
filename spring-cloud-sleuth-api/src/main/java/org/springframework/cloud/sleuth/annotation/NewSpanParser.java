@@ -21,7 +21,7 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.cloud.sleuth.Span;
 
 /**
- * Parses data for a span created via a {@link NewSpan} annotation.
+ * 用于为通过{@link NewSpan}创建的Span解析数据
  *
  * @author Adrian Cole
  * @since 2.0.0
@@ -29,10 +29,11 @@ import org.springframework.cloud.sleuth.Span;
 public interface NewSpanParser {
 
 	/**
-	 * Override to control the name and tags on an annotation-based span.
-	 * @param methodInvocation method invocation annotated with new span
-	 * @param newSpan meta data of the new span
-	 * @param span span to customize
+	 * 控制基于注解的Span名称和标签
+	 *
+	 * @param methodInvocation 带有{@link NewSpan}注解的方法调用
+	 * @param newSpan {@link NewSpan}注解
+	 * @param span 可自定义的Span
 	 */
 	void parse(MethodInvocation methodInvocation, NewSpan newSpan, Span span);
 

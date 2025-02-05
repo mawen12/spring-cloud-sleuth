@@ -21,8 +21,9 @@ import java.util.Map;
 import org.springframework.lang.Nullable;
 
 /**
- * Manages {@link BaggageInScope} entries. Upon retrieval / creation of a baggage entry
- * puts it in scope. Scope must be closed.
+ * 管理{@link BaggageInScope}实体。检索/创建行李实体后将其放入范围内。
+ *
+ * <p>{@link org.springframework.cloud.sleuth.CurrentTraceContext.Scope}必须关闭
  *
  * @author OpenTelemetry Authors
  * @author Marcin Grzejszczak
@@ -31,20 +32,22 @@ import org.springframework.lang.Nullable;
 public interface BaggageManager {
 
 	/**
-	 * @return mapping of all baggage entries from the given scope
+	 * @return 返回给定范围内所有的行李实体映射
 	 */
 	Map<String, String> getAllBaggage();
 
 	/**
-	 * Retrieves {@link BaggageInScope} for the given name.
-	 * @param name baggage name
-	 * @return baggage or {@code null} if not present
+	 * 检索给定名称的{@link BaggageInScope}
+	 *
+	 * @param name 行李名称
+	 * @return {@link BaggageInScope}，如果不存在返回null
 	 */
 	@Nullable
 	BaggageInScope getBaggage(String name);
 
 	/**
-	 * Retrieves {@link BaggageInScope} for the given name.
+	 * 检索给定名称的{@link BaggageInScope}
+	 *
 	 * @param traceContext trace context with baggage attached to it
 	 * @param name baggage name
 	 * @return baggage or {@code null} if not present
@@ -53,16 +56,16 @@ public interface BaggageManager {
 	BaggageInScope getBaggage(TraceContext traceContext, String name);
 
 	/**
-	 * Creates a new {@link BaggageInScope} entry for the given name or returns an
-	 * existing one if it's already present.
+	 * 如果给定名称对应的不存在，则创建一个新的{@link BaggageInScope}，否则返回已存在的。
+	 *
 	 * @param name baggage name
 	 * @return new or already created baggage
 	 */
 	BaggageInScope createBaggage(String name);
 
 	/**
-	 * Creates a new {@link BaggageInScope} entry for the given name or returns an
-	 * existing one if it's already present.
+	 * 如果给定名称对应的不存在，则创建一个新的{@link BaggageInScope}，否则返回已存在的。
+	 *
 	 * @param name baggage name
 	 * @param value baggage value
 	 * @return new or already created baggage

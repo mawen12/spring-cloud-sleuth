@@ -23,39 +23,33 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation to provide the name for the span. You should annotate all your custom
- * {@link Runnable Runnable} or {@link java.util.concurrent.Callable Callable} classes for
- * the instrumentation logic to pick up how to name the span.
- * <p>
+ * 用于为Span提供名称的注解。应在为所有自定义{@link Runnable}和{@link java.util.concurrent.Callable}类添加该注解，
+ * 以便检测逻辑能够确定如何命名Span。
  *
- * Having for example the following code <pre>{@code
- *     &#64;SpanName("custom-operation")
- *     class CustomRunnable implements Runnable {
- *         &#64;Override
- *         public void run() {
- *          // latency of this method will be recorded in a span named "custom-operation"
- *         }
- *      }
+ * <p>示例，将生成一个名为{@code custom-operation}的Span
+ * <pre>{@code
+ * 	@SpanName("custom-operation)
+ * 	class CustomRunnable implements Runnable {
+ * 		@Override
+ * 		public void run() {
+ * 			// latency of this method will be recorded in a span named "custom-operation"
+ * 		}
+ * 	}
  * }</pre>
  *
- * Will result in creating a span with name {@code custom-operation}.
- * <p>
+ * <p>如果未提供注解，将使用{@link Object#toString()}作为Span的名称
+ * <pre>{@code
+ * 	return new Runnable() {
+ * 	    -- snip --
  *
- * When there's no @SpanName annotation, {@code toString} is used. Here's an example of
- * the above, but via an anonymous instance. <pre>{@code
- *     return new Runnable() {
- *          -- snip --
- *
- *          &#64;Override
- *          public String toString() {
- *              return "custom-operation";
- *          }
- *     };
+ * 		@Override
+ * 		public String toString() {
+ * 		 	return "custom-operation";
+ * 		}
+ * 	}
  * }</pre>
  *
- * Starting with version {@code 1.3.0} you can also put the annotation on an
- * {@link org.springframework.scheduling.annotation.Async} annotated method and the value
- * of that annotation will be used as the span name.
+ * <p>从{@code 1.3.0}开始，支持将{@link SpanName}与{@link org.springframework.scheduling.annotation.Async}一起使用加在方法上
  *
  * @author Marcin Grzejszczak
  * @since 1.0.0
@@ -66,7 +60,8 @@ import java.lang.annotation.Target;
 public @interface SpanName {
 
 	/**
-	 * Name of the span to be resolved at runtime.
+	 * 在运行时被解析的Span名称
+	 *
 	 * @return - value of the span name.
 	 */
 	String value();

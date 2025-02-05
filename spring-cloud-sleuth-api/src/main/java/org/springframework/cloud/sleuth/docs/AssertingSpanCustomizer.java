@@ -16,10 +16,11 @@
 
 package org.springframework.cloud.sleuth.docs;
 
+import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.SpanCustomizer;
 
 /**
- * A {@link SpanCustomizer} that can perform assertions on itself.
+ * 可以对自身执行断言的{@link SpanCustomizer}
  *
  * @author Marcin Grzejszczak
  * @since 3.1.0
@@ -27,18 +28,20 @@ import org.springframework.cloud.sleuth.SpanCustomizer;
 public interface AssertingSpanCustomizer extends SpanCustomizer {
 
 	/**
-	 * @return a {@link DocumentedSpan} with span configuration
+	 * @return 包含Span配置的 {@link DocumentedSpan}
 	 */
 	DocumentedSpan getDocumentedSpan();
 
 	/**
-	 * @return wrapped {@link SpanCustomizer}
+	 * @return 被包装的 {@link SpanCustomizer}
 	 */
 	SpanCustomizer getDelegate();
 
 	@Override
 	default AssertingSpanCustomizer tag(String key, String value) {
+		// 校验标签合法
 		DocumentedSpanAssertions.assertThatKeyIsValid(key, getDocumentedSpan());
+		// 设置到原始的Span上
 		getDelegate().tag(key, value);
 		return this;
 	}
@@ -50,14 +53,18 @@ public interface AssertingSpanCustomizer extends SpanCustomizer {
 	 * @return this, for chaining
 	 */
 	default AssertingSpanCustomizer tag(TagKey key, String value) {
+		// 校验标签合法
 		DocumentedSpanAssertions.assertThatKeyIsValid(key, getDocumentedSpan());
+		// 设置到原始的Span上
 		getDelegate().tag(key.getKey(), value);
 		return this;
 	}
 
 	@Override
 	default AssertingSpanCustomizer event(String value) {
+		// 校验事件合法
 		DocumentedSpanAssertions.assertThatEventIsValid(value, getDocumentedSpan());
+		// 设置到原始的Span上
 		getDelegate().event(value);
 		return this;
 	}
@@ -68,14 +75,18 @@ public interface AssertingSpanCustomizer extends SpanCustomizer {
 	 * @return this, for chaining
 	 */
 	default AssertingSpanCustomizer event(EventValue value) {
+		// 校验事件合法
 		DocumentedSpanAssertions.assertThatEventIsValid(value, getDocumentedSpan());
+		// 设置到原始的Span上
 		getDelegate().event(value.getValue());
 		return this;
 	}
 
 	@Override
 	default AssertingSpanCustomizer name(String name) {
+		// 校验名称合法
 		DocumentedSpanAssertions.assertThatNameIsValid(name, getDocumentedSpan());
+		// 设置到原始的Span上
 		getDelegate().name(name);
 		return this;
 	}

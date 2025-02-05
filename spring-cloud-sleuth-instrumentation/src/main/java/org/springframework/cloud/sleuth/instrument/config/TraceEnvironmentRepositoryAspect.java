@@ -24,7 +24,7 @@ import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.cloud.sleuth.docs.AssertingSpan;
 
 /**
- * Aspect wrapping resolution of properties.
+ * 用于拦截{@link org.springframework.cloud.config.server.environment.EnvironmentRepository}方法的切面
  *
  * @author Marcin Grzejszczak
  * @since 3.1.0
@@ -41,15 +41,19 @@ public class TraceEnvironmentRepositoryAspect {
 	@Around("execution (* org.springframework.cloud.config.server.environment.EnvironmentRepository.*(..))")
 	public Object traceFindEnvironment(final ProceedingJoinPoint pjp) throws Throwable {
 		// @formatter:off
+		// 创建新的Span，名称为find，标签有{@code config.environment.class}和{@code config.environment.method}
 		AssertingSpan findOneSpan = SleuthConfigSpan.CONFIG_SPAN.wrap(this.tracer.nextSpan())
 			.name(SleuthConfigSpan.CONFIG_SPAN.getName())
 			.tag(SleuthConfigSpan.Tags.ENVIRONMENT_CLASS, pjp.getTarget().getClass().getName())
 			.tag(SleuthConfigSpan.Tags.ENVIRONMENT_METHOD, pjp.getSignature().getName());
 		// @formatter:on
+		// 开始新的Span，并设置为当前Span，返回Span范围
 		try (Tracer.SpanInScope ws = this.tracer.withSpan(findOneSpan.start())) {
+			// 执行实际处理
 			return pjp.proceed();
 		}
 		finally {
+			// 结束Span
 			findOneSpan.end();
 		}
 	}

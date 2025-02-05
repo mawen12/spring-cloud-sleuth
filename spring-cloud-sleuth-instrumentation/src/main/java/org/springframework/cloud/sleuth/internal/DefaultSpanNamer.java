@@ -35,6 +35,9 @@ import org.springframework.core.annotation.AnnotationUtils;
  * <p>
  * * the default provided value.
  *
+ * {@link SpanNamer}默认实现。名称提供如下：
+ *
+ *
  * @author Marcin Grzejszczak
  * @since 1.0.0
  * @see SpanName

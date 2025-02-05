@@ -22,17 +22,26 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.cloud.sleuth.Tracer;
 
 /**
- * StepBuilderFactory adding {@link TraceStepExecutionListener}.
+ * 用于向{@link StepBuilderFactory}添加{@link TraceStepExecutionListener}的工厂
  *
  * @author Marcin Grzejszczak
  * @since 3.1.0
  */
 public class TraceStepBuilderFactory extends StepBuilderFactory {
 
+	/**
+	 * Bean工厂
+	 */
 	private final BeanFactory beanFactory;
 
+	/**
+	 * 原始类
+	 */
 	private final StepBuilderFactory delegate;
 
+	/**
+	 * 跟踪器
+	 */
 	private Tracer tracer;
 
 	public TraceStepBuilderFactory(BeanFactory beanFactory, StepBuilderFactory delegate) {
@@ -41,11 +50,20 @@ public class TraceStepBuilderFactory extends StepBuilderFactory {
 		this.delegate = delegate;
 	}
 
+	/**
+	 * 返回指定的{@link StepBuilder}，并添加{@link TraceStepExecutionListener}
+	 *
+	 * @param name
+	 * @return
+	 */
 	@Override
 	public StepBuilder get(String name) {
 		return this.delegate.get(name).listener(new TraceStepExecutionListener(tracer()));
 	}
 
+	/**
+	 * @return 返回跟踪器，如果不存在则从{@link BeanFactory#getBean(Class)}获取
+	 */
 	private Tracer tracer() {
 		if (this.tracer == null) {
 			this.tracer = this.beanFactory.getBean(Tracer.class);

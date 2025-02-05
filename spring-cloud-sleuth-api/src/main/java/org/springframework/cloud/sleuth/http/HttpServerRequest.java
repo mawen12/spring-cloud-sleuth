@@ -19,9 +19,9 @@ package org.springframework.cloud.sleuth.http;
 import org.springframework.cloud.sleuth.Span;
 
 /**
- * This API is taken from OpenZipkin Brave.
+ * 此API取自OpenZipkin Brave。
  *
- * Abstract request type used for parsing and sampling. Represents an HTTP Server request.
+ * <p>用于解析和采样的抽象请求，代表一个HTTP服务端请求
  *
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
@@ -35,6 +35,8 @@ public interface HttpServerRequest extends HttpRequest {
 	}
 
 	/**
+	 * 获取指定属性值
+	 *
 	 * @param key attribute key
 	 * @return attribute with the given key or {@code null} if not set
 	 */
@@ -43,6 +45,8 @@ public interface HttpServerRequest extends HttpRequest {
 	}
 
 	/**
+	 * 设置属性
+	 *
 	 * @param key attribute key
 	 * @param value attribute value
 	 */

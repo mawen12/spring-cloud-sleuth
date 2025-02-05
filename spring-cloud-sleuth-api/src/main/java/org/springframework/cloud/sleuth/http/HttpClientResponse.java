@@ -20,10 +20,9 @@ import org.springframework.cloud.sleuth.Span;
 import org.springframework.lang.Nullable;
 
 /**
- * This API is taken from OpenZipkin Brave.
+ * 此API取自OpenZipkin Brave。
  *
- * Abstract response type used for parsing and sampling. Represents an HTTP Client
- * response.
+ * <p>用于解析和采样的抽象请求，代表一个HTTP客户端响应
  *
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak

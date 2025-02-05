@@ -21,7 +21,7 @@ import java.util.function.Supplier;
 import net.ttddyy.dsproxy.ConnectionIdManager;
 
 /**
- * Supplier of a {@link ConnectionIdManager}.
+ * {@link ConnectionIdManager}的提供者
  *
  * @author Arthur Gavlyukovskiy
  * @since 3.1.0

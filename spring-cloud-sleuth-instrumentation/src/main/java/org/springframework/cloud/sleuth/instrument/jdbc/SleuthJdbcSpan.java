@@ -20,27 +20,42 @@ import org.springframework.cloud.sleuth.docs.DocumentedSpan;
 import org.springframework.cloud.sleuth.docs.EventValue;
 import org.springframework.cloud.sleuth.docs.TagKey;
 
+/**
+ * 代表Spring Cloud Sleuth JDBC的Span
+ */
 enum SleuthJdbcSpan implements DocumentedSpan {
 
 	/**
-	 * Span created when a JDBC query gets executed.
+	 * 当执行JDBC查询时创建Span
 	 */
 	JDBC_QUERY_SPAN {
+		/**
+		 * @return 名称要求：任意字符串
+		 */
 		@Override
 		public String getName() {
 			return "%s";
 		}
 
+		/**
+		 * @return 只允许存在{@code jdbc.query}和{@code jdbc.row-count}的键
+		 */
 		@Override
 		public TagKey[] getTagKeys() {
 			return QueryTags.values();
 		}
 
+		/**
+		 * @return 只允许存在{@code jdbc.commit}和{@code jdbc.rollback}的事件
+		 */
 		@Override
 		public EventValue[] getEvents() {
 			return QueryEvents.values();
 		}
 
+		/**
+		 * @return 事件与标签的前缀为jdbc.
+		 */
 		@Override
 		public String prefix() {
 			return "jdbc.";
@@ -48,24 +63,36 @@ enum SleuthJdbcSpan implements DocumentedSpan {
 	},
 
 	/**
-	 * Span created when working with JDBC result set.
+	 * 当处理JDBC结果集时创建Span
 	 */
 	JDBC_RESULT_SET_SPAN {
+		/**
+		 * @return 名称要求：任意字符串
+		 */
 		@Override
 		public String getName() {
 			return "result-set";
 		}
 
+		/**
+		 * @return 只允许存在{@code jdbc.query}和{@code jdbc.row-count}的键
+		 */
 		@Override
 		public TagKey[] getTagKeys() {
 			return QueryTags.values();
 		}
 
+		/**
+		 * @return 只允许存在{@code jdbc.commit}和{@code jdbc.rollback}的事件
+		 */
 		@Override
 		public EventValue[] getEvents() {
 			return QueryEvents.values();
 		}
 
+		/**
+		 * @return 事件与标签的前缀为jdbc.
+		 */
 		@Override
 		public String prefix() {
 			return "jdbc.";
@@ -73,19 +100,27 @@ enum SleuthJdbcSpan implements DocumentedSpan {
 	},
 
 	/**
-	 * Span created when a JDBC connection takes place.
+	 * 在发生JDBC连接时创建Span
 	 */
 	JDBC_CONNECTION_SPAN {
+		/**
+		 * @return 名称要求：connection
+		 */
 		@Override
 		public String getName() {
 			return "connection";
 		}
 
+		/**
+		 * @return 只允许存在{@code jdbc.datasource.driver}和{@code jdbc.datasource.pool}的键
+		 */
 		@Override
 		public TagKey[] getTagKeys() {
 			return ConnectionTags.values();
 		}
-
+		/**
+		 * @return 事件与标签的前缀为jdbc.
+		 */
 		@Override
 		public String prefix() {
 			return "jdbc.";
@@ -95,7 +130,7 @@ enum SleuthJdbcSpan implements DocumentedSpan {
 	enum ConnectionTags implements TagKey {
 
 		/**
-		 * Name of the JDBC datasource driver.
+		 * JDBC数据源驱动名称
 		 */
 		DATASOURCE_DRIVER {
 			@Override
@@ -105,7 +140,7 @@ enum SleuthJdbcSpan implements DocumentedSpan {
 		},
 
 		/**
-		 * Name of the JDBC datasource pool.
+		 * JDBC连接次大小
 		 */
 		DATASOURCE_POOL {
 			@Override
@@ -119,7 +154,7 @@ enum SleuthJdbcSpan implements DocumentedSpan {
 	enum QueryTags implements TagKey {
 
 		/**
-		 * The SQL query value.
+		 * SQL查询值
 		 */
 		QUERY {
 			@Override
@@ -129,7 +164,7 @@ enum SleuthJdbcSpan implements DocumentedSpan {
 		},
 
 		/**
-		 * Number of SQL rows.
+		 * SQL返回结果数
 		 */
 		ROW_COUNT {
 			@Override
@@ -143,7 +178,7 @@ enum SleuthJdbcSpan implements DocumentedSpan {
 	enum QueryEvents implements EventValue {
 
 		/**
-		 * When the transaction gets committed.
+		 * 事务提交时事件
 		 */
 		COMMIT {
 			@Override
@@ -153,7 +188,7 @@ enum SleuthJdbcSpan implements DocumentedSpan {
 		},
 
 		/**
-		 * When the transaction gets rolled back.
+		 * 事务回滚时事件
 		 */
 		ROLLBACK {
 			@Override

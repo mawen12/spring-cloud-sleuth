@@ -25,30 +25,50 @@ import java.util.stream.Collectors;
 import org.springframework.util.StringUtils;
 
 /**
- * In order to turn on the assertions you need to either turn on the
- * {@code spring.cloud.sleuth.assertions.enabled} system property or
- * {@code SPRING_CLOUD_SLEUTH_ASSERTIONS_ENABLED} environment variable.
+ * 对Span进行断言的工具，开关为
+ * <ul>
+ *     <li>系统属性：{@code spring.cloud.sleuth.assertions.enabled}</li>
+ *     <li>环境变量：{@code SPRING_CLOUD_SLEUTH_ASSERTIONS_ENABLED}</li>
+ * </ul>
+ *
  */
 final class DocumentedSpanAssertions {
 
-	static boolean SLEUTH_SPAN_ASSERTIONS_ON = Boolean.parseBoolean(System.getProperty(
-			"spring.cloud.sleuth.assertions.enabled", System.getenv("SPRING_CLOUD_SLEUTH_ASSERTIONS_ENABLED") != null
+	/**
+	 * 读取断言开关，PROPERTIES(spring.cloud.sleuth.assertions.enabled) -> ENV(SPRING_CLOUD_SLEUTH_ASSERTIONS_ENABLED) -> DEFAULT(false)
+	 */
+	static boolean SLEUTH_SPAN_ASSERTIONS_ON = Boolean.parseBoolean(System.getProperty("spring.cloud.sleuth.assertions.enabled", System.getenv("SPRING_CLOUD_SLEUTH_ASSERTIONS_ENABLED") != null
 					? System.getenv("SPRING_CLOUD_SLEUTH_ASSERTIONS_ENABLED") : "false"));
 
+	/**
+	 * 缓存正则表达式
+	 */
 	private static final Map<String, Pattern> PATTERN_CACHE = new ConcurrentHashMap<>();
 
+	/**
+	 * 正则表达式编译
+	 */
 	private static final Pattern SPECIAL_REGEX_CHARS = Pattern.compile("[{}()\\[\\].+*?^$\\\\|]");
 
 	private DocumentedSpanAssertions() {
 		throw new IllegalStateException("Can't instantiate utility class");
 	}
 
+	/**
+	 * 校验key是否匹配{@link DocumentedSpan#getTagKeys()}和{@link DocumentedSpan#prefix()}
+	 *
+	 * @param key
+	 * @param documentedSpan
+	 */
 	static void assertThatKeyIsValid(String key, DocumentedSpan documentedSpan) {
 		if (SLEUTH_SPAN_ASSERTIONS_ON) {
+			// 获取允许的标签键
 			TagKey[] allowedKeys = documentedSpan.getTagKeys();
 			if (allowedKeys.length == 0) {
+				// 未设置允许的键，代表不限制
 				return;
 			}
+			// 正则匹配，以及前缀匹配
 			boolean validTagKey = Arrays.stream(allowedKeys)
 					.anyMatch(tagKey -> patternOrValueMatches(key, tagKey.getKey())
 							&& hasRequiredPrefix(key, documentedSpan.prefix()));
@@ -65,6 +85,12 @@ final class DocumentedSpanAssertions {
 				? ". Also it has start with [" + documentedSpan.prefix() + "] prefix" : "";
 	}
 
+	/**
+	 * 校验{@link TagKey#getKey()}是否匹配{@link DocumentedSpan#getTagKeys()}和{@link DocumentedSpan#prefix()}
+	 *
+	 * @param key
+	 * @param documentedSpan
+	 */
 	static void assertThatKeyIsValid(TagKey key, DocumentedSpan documentedSpan) {
 		if (SLEUTH_SPAN_ASSERTIONS_ON) {
 			TagKey[] allowedKeys = documentedSpan.getTagKeys();
@@ -80,30 +106,44 @@ final class DocumentedSpanAssertions {
 		}
 	}
 
+	/**
+	 * 校验name是否匹配{@link DocumentedSpan#getName()}
+	 *
+	 * @param name
+	 * @param documentedSpan
+	 */
 	static void assertThatNameIsValid(String name, DocumentedSpan documentedSpan) {
 		String allowedName = documentedSpan.getName();
 		if (SLEUTH_SPAN_ASSERTIONS_ON && !patternOrValueMatches(name, allowedName)) {
-			throw new AssertionError(
-					"The name [" + name + "] is invalid. You can use only one matching [" + allowedName + "]");
+			throw new AssertionError("The name [" + name + "] is invalid. You can use only one matching [" + allowedName + "]");
 		}
 	}
 
+	/**
+	 * 校验eventValue是否匹配{@link DocumentedSpan#getEvents()}和{@link DocumentedSpan#prefix()}
+	 *
+	 * @param eventValue
+	 * @param documentedSpan
+	 */
 	static void assertThatEventIsValid(String eventValue, DocumentedSpan documentedSpan) {
 		if (SLEUTH_SPAN_ASSERTIONS_ON) {
 			EventValue[] allowed = documentedSpan.getEvents();
 			if (allowed.length == 0) {
 				return;
 			}
-			boolean valid = Arrays.stream(allowed).anyMatch(value -> patternOrValueMatches(eventValue, value.getValue())
-					&& hasRequiredPrefix(eventValue, documentedSpan.prefix()));
+			boolean valid = Arrays.stream(allowed).anyMatch(value -> patternOrValueMatches(eventValue, value.getValue()) && hasRequiredPrefix(eventValue, documentedSpan.prefix()));
 			if (!valid) {
-				throw new AssertionError("The event [" + eventValue + "] is invalid. You can use only one matching "
-						+ Arrays.stream(allowed).map(EventValue::getValue).collect(Collectors.toList())
-						+ prefixWarningIfPresent(documentedSpan));
+				throw new AssertionError("The event [" + eventValue + "] is invalid. You can use only one matching " + Arrays.stream(allowed).map(EventValue::getValue).collect(Collectors.toList()) + prefixWarningIfPresent(documentedSpan));
 			}
 		}
 	}
 
+	/**
+	 * 校验{@link EventValue#getValue()}是否匹配{@link DocumentedSpan#getEvents()}和{@link DocumentedSpan#prefix()}
+	 *
+	 * @param eventValue
+	 * @param documentedSpan
+	 */
 	static void assertThatEventIsValid(EventValue eventValue, DocumentedSpan documentedSpan) {
 		if (SLEUTH_SPAN_ASSERTIONS_ON) {
 			EventValue[] allowed = documentedSpan.getEvents();
@@ -120,6 +160,11 @@ final class DocumentedSpanAssertions {
 		}
 	}
 
+	/**
+	 * 校验{@link AssertingSpan#isStarted()}=true
+	 *
+	 * @param span
+	 */
 	static void assertThatSpanStartedBeforeEnd(AssertingSpan span) {
 		if (SLEUTH_SPAN_ASSERTIONS_ON && !span.isStarted()) {
 			throw new AssertionError("The span was not started, however you're trying to end it");
@@ -128,8 +173,11 @@ final class DocumentedSpanAssertions {
 
 	private static boolean patternOrValueMatches(String pickedValue, String allowedValue) {
 		if (allowedValue.contains("%s")) {
+			// 将 %s -> .*？
 			String stringPattern = escapeSpecialRegexWithSingleEscape(allowedValue).replaceAll("%s", ".*?");
+			// 获取正则表达式
 			Pattern pattern = PATTERN_CACHE.computeIfAbsent(stringPattern, Pattern::compile);
+			// 匹配结果
 			return pattern.matcher(pickedValue).matches();
 		}
 		return allowedValue.equals(pickedValue);

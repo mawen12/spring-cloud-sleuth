@@ -24,8 +24,7 @@ import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.AsyncConfigurerSupport;
 
 /**
- * {@link AsyncConfigurerSupport} that creates a tracing data passing version of the
- * {@link Executor}.
+ * 用于支持跟踪{@link AsyncConfigurerSupport}实现
  *
  * @author Dave Syer
  * @since 1.0.0
@@ -42,6 +41,9 @@ public class LazyTraceAsyncCustomizer extends AsyncConfigurerSupport {
 		this.delegate = delegate;
 	}
 
+	/**
+	 * @return 将{@link Executor}包装为{@link LazyTraceExecutor}
+	 */
 	@Override
 	public Executor getAsyncExecutor() {
 		Executor executor = this.delegate.getAsyncExecutor();

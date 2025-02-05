@@ -21,9 +21,9 @@ import java.util.Collection;
 import org.springframework.cloud.sleuth.Span;
 
 /**
- * This API is taken from OpenZipkin Brave.
+ * 此API取自 OpenZipkin Brave。
  *
- * Abstract request type used for parsing and sampling.
+ * <p>用于解析和采样的抽象类型请求
  *
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
@@ -32,18 +32,17 @@ import org.springframework.cloud.sleuth.Span;
 public interface Request {
 
 	/**
-	 * @return list of header names.
+	 * @return 请求头名称列表
 	 */
 	Collection<String> headerNames();
 
 	/**
-	 * @return The remote {@link Span.Kind} describing the direction and type of the
-	 * request.
+	 * @return 用于描述目标和请求类型的Span类型
 	 */
 	Span.Kind spanKind();
 
 	/**
-	 * @return the underlying request object or {@code null} if there is none.
+	 * @return 底层请求对象或 {@code null}
 	 */
 	Object unwrap();
 

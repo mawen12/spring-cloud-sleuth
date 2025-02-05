@@ -27,7 +27,7 @@ import org.springframework.cloud.sleuth.internal.SpanNameUtil;
 import org.springframework.util.StringUtils;
 
 /**
- * Default implementation of the {@link NewSpanParser} that parses only the span name.
+ * {@link NewSpanParser}的默认实现，仅解析Span名称
  *
  * @author Christian Schwerdtfeger
  * @since 1.2.0
@@ -38,13 +38,15 @@ public class DefaultSpanCreator implements NewSpanParser {
 
 	@Override
 	public void parse(MethodInvocation pjp, NewSpan newSpan, Span span) {
-		String name = newSpan == null || StringUtils.isEmpty(newSpan.name()) ? pjp.getMethod().getName()
-				: newSpan.name();
+		// 解析Span名称，从 NewSpan#name -> Method#name
+		String name = newSpan == null || StringUtils.isEmpty(newSpan.name()) ? pjp.getMethod().getName() : newSpan.name();
+		// 转换为小写的连字符
 		String changedName = SpanNameUtil.toLowerHyphen(name);
 		if (log.isDebugEnabled()) {
 			log.debug("For the class [" + pjp.getThis().getClass() + "] method " + "[" + pjp.getMethod().getName()
 					+ "] will name the span [" + changedName + "]");
 		}
+		// 设置名称
 		span.name(changedName);
 	}
 

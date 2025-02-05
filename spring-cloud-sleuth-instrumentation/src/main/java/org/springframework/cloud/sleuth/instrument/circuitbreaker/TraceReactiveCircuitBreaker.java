@@ -27,16 +27,27 @@ import org.springframework.cloud.sleuth.CurrentTraceContext;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.cloud.sleuth.instrument.reactor.ReactorSleuth;
 
+/**
+ * 用于支持跟踪{@link ReactiveCircuitBreaker}
+ */
 class TraceReactiveCircuitBreaker implements ReactiveCircuitBreaker {
 
+	/**
+	 * 原始的CircuitBreaker
+	 */
 	private final ReactiveCircuitBreaker delegate;
 
+	/**
+	 * 跟踪器
+	 */
 	private final Tracer tracer;
 
+	/**
+	 * 当前跟踪上下文
+	 */
 	private final CurrentTraceContext currentTraceContext;
 
-	TraceReactiveCircuitBreaker(ReactiveCircuitBreaker delegate, Tracer tracer,
-			CurrentTraceContext currentTraceContext) {
+	TraceReactiveCircuitBreaker(ReactiveCircuitBreaker delegate, Tracer tracer, CurrentTraceContext currentTraceContext) {
 		this.delegate = delegate;
 		this.tracer = tracer;
 		this.currentTraceContext = currentTraceContext;
@@ -49,8 +60,7 @@ class TraceReactiveCircuitBreaker implements ReactiveCircuitBreaker {
 
 	@Override
 	public <T> Mono<T> run(Mono<T> toRun, Function<Throwable, Mono<T>> fallback) {
-		return runAndTraceMono(
-				() -> this.delegate.run(toRun, fallback != null ? new TraceFunction<>(this.tracer, fallback) : null));
+		return runAndTraceMono(() -> this.delegate.run(toRun, fallback != null ? new TraceFunction<>(this.tracer, fallback) : null));
 	}
 
 	@Override
@@ -60,15 +70,16 @@ class TraceReactiveCircuitBreaker implements ReactiveCircuitBreaker {
 
 	@Override
 	public <T> Flux<T> run(Flux<T> toRun, Function<Throwable, Flux<T>> fallback) {
-		return runAndTraceFlux(
-				() -> this.delegate.run(toRun, fallback != null ? new TraceFunction<>(this.tracer, fallback) : null));
+		return runAndTraceFlux(() -> this.delegate.run(toRun, fallback != null ? new TraceFunction<>(this.tracer, fallback) : null));
 	}
 
 	private <T> Mono<T> runAndTraceMono(Supplier<Mono<T>> mono) {
+		// 将结果包装为SpanMono
 		return ReactorSleuth.tracedMono(this.tracer, this.currentTraceContext, "function", mono);
 	}
 
 	private <T> Flux<T> runAndTraceFlux(Supplier<Flux<T>> flux) {
+		// 将结果包装为SpanFlux
 		return ReactorSleuth.tracedFlux(this.tracer, this.currentTraceContext, "function", flux);
 	}
 

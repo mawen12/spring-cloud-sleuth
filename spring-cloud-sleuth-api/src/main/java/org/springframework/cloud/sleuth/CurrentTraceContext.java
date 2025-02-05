@@ -24,11 +24,9 @@ import java.util.concurrent.ExecutorService;
 import org.springframework.lang.Nullable;
 
 /**
- * This API was heavily influenced by Brave. Parts of its documentation were taken
- * directly from Brave.
+ * 此API深受Brave影响，其部分文档直接取自Brave。
  *
- * This makes a given span the current span by placing it in scope (usually but not always
- * a thread local scope).
+ * <p>通过将给定Span置于范围内（通常但不总是线程本地范围），可以使其成为当前Span
  *
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
@@ -37,30 +35,30 @@ import org.springframework.lang.Nullable;
 public interface CurrentTraceContext {
 
 	/**
-	 * @return current {@link TraceContext} or {@code null} if not set.
+	 * @return 当前 {@link TraceContext} 或在不存在时为{@code null}
 	 */
 	@Nullable
 	TraceContext context();
 
 	/**
-	 * Sets the current span in scope until the returned object is closed. It is a
-	 * programming error to drop or never close the result. Using try-with-resources is
-	 * preferred for this reason.
+	 * 设置当前Span在范围内，直到调用了对应的关闭方法。对于直接抛出或永不关闭结果，这是一个编程错误。使用try-with-resources来避免这种问题。
+	 *
 	 * @param context span to place into scope or {@code null} to clear the scope
 	 * @return the scope with the span set
 	 */
 	CurrentTraceContext.Scope newScope(@Nullable TraceContext context);
 
 	/**
-	 * Like {@link #newScope(TraceContext)}, except returns a noop scope if the given
-	 * context is already in scope.
+	 * 类似于{@link #newScope(TraceContext)}，当给定的上下文已经存在于范围中时，返回{@link Scope#NOOP}。
+	 *
 	 * @param context span to place into scope or {@code null} to clear the scope
 	 * @return the scope with the span set
 	 */
 	CurrentTraceContext.Scope maybeScope(@Nullable TraceContext context);
 
 	/**
-	 * Wraps a task in a trace representation.
+	 * 将{@link Callable}包装在Trace表示中
+	 *
 	 * @param task task to wrap
 	 * @param <C> task return type
 	 * @return wrapped task
@@ -68,29 +66,31 @@ public interface CurrentTraceContext {
 	<C> Callable<C> wrap(Callable<C> task);
 
 	/**
-	 * Wraps a task in a trace representation.
+	 * 将{@link Runnable}包装在Trace表示中
+	 *
 	 * @param task task to wrap
 	 * @return wrapped task
 	 */
 	Runnable wrap(Runnable task);
 
 	/**
-	 * Wraps an executor in a trace representation.
+	 * 将{@link Executor}包装在Trace表示中
+	 *
 	 * @param delegate executor to wrap
 	 * @return wrapped executor
 	 */
 	Executor wrap(Executor delegate);
 
 	/**
-	 * Wraps an executor service in a trace representation.
+	 * 将{@link ExecutorService}包装在Trace表示中
+	 *
 	 * @param delegate executor service to wrap
 	 * @return wrapped executor service
 	 */
 	ExecutorService wrap(ExecutorService delegate);
 
 	/**
-	 * Scope of a span. Needs to be closed so that resources are let go (e.g. MDC is
-	 * cleared).
+	 * {@link Span}的范围，需要调用{@link #close()}来释放资源，例如清理MDC
 	 */
 	interface Scope extends Closeable {
 

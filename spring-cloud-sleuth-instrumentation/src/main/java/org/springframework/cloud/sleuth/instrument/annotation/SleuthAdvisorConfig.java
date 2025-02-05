@@ -42,8 +42,7 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.ReflectionUtils;
 
 /**
- * Custom pointcut advisor that picks all classes / interfaces that have the Sleuth
- * related annotations.
+ * 自定义的切入点顾问，选择具有Sleuth相关注解的所有类和接口
  *
  * @author Marcin Grzejszczak
  * @since 1.2.0
@@ -51,10 +50,19 @@ import org.springframework.util.ReflectionUtils;
 @SuppressWarnings("serial")
 public class SleuthAdvisorConfig extends AbstractPointcutAdvisor implements BeanFactoryAware {
 
+	/**
+	 * 要支持的逻辑
+	 */
 	private Advice advice;
 
+	/**
+	 * 切点，仅拦截@NewSpan和@ContinueSpan注解的方法
+	 */
 	private Pointcut pointcut;
 
+	/**
+	 * Bean工厂
+	 */
 	private BeanFactory beanFactory;
 
 	@PostConstruct
@@ -93,7 +101,7 @@ public class SleuthAdvisorConfig extends AbstractPointcutAdvisor implements Bean
 	}
 
 	/**
-	 * Checks if a method is properly annotated with a given Sleuth annotation.
+	 * 检查方法上是否存在Sleuth注解
 	 */
 	private static class AnnotationMethodsResolver {
 
@@ -109,8 +117,7 @@ public class SleuthAdvisorConfig extends AbstractPointcutAdvisor implements Bean
 				if (found.get()) {
 					return;
 				}
-				Annotation annotation = AnnotationUtils.findAnnotation(method,
-						AnnotationMethodsResolver.this.annotationType);
+				Annotation annotation = AnnotationUtils.findAnnotation(method, AnnotationMethodsResolver.this.annotationType);
 				if (annotation != null) {
 					found.set(true);
 				}
@@ -121,7 +128,9 @@ public class SleuthAdvisorConfig extends AbstractPointcutAdvisor implements Bean
 	}
 
 	/**
-	 * Checks if a class or a method is is annotated with Sleuth related annotations.
+	 * 检查类或方法是否存在Sleuth相关注解
+	 *
+	 * <p>仅支持{@link NewSpan}和{@link ContinueSpan}注解
 	 */
 	private final class AnnotationClassOrMethodOrArgsPointcut extends DynamicMethodMatcherPointcut {
 
@@ -137,14 +146,16 @@ public class SleuthAdvisorConfig extends AbstractPointcutAdvisor implements Bean
 			return new ClassFilter() {
 				@Override
 				public boolean matches(Class<?> clazz) {
-					return new AnnotationClassOrMethodFilter(NewSpan.class).matches(clazz)
-							|| new AnnotationClassOrMethodFilter(ContinueSpan.class).matches(clazz);
+					return new AnnotationClassOrMethodFilter(NewSpan.class).matches(clazz) || new AnnotationClassOrMethodFilter(ContinueSpan.class).matches(clazz);
 				}
 			};
 		}
 
 	}
 
+	/**
+	 * 类或方法上存在指定注解的过滤器
+	 */
 	private final class AnnotationClassOrMethodFilter extends AnnotationClassFilter {
 
 		private final AnnotationMethodsResolver methodResolver;
@@ -164,32 +175,47 @@ public class SleuthAdvisorConfig extends AbstractPointcutAdvisor implements Bean
 }
 
 /**
- * Interceptor that creates or continues a span depending on the provided annotation. Also
- * it adds logs and tags if necessary.
+ * 根据提供的注解创建或继续Span的拦截器，此外，在必要时添加日志和标签。
  *
  * @author Marcin Grzejszczak
  */
 class SleuthInterceptor implements IntroductionInterceptor, BeanFactoryAware {
 
+	/**
+	 * Bean工厂
+	 */
 	private BeanFactory beanFactory;
 
+	/**
+	 * Sleuth注解标注的方法调用执行器
+	 */
 	private SleuthMethodInvocationProcessor methodInvocationProcessor;
 
 	@Override
 	public Object invoke(MethodInvocation invocation) throws Throwable {
+		// 获取方法
 		Method method = invocation.getMethod();
 		if (method == null) {
+			// 方法不存在，跳过不处理
 			return invocation.proceed();
 		}
+		// 获取方法
 		Method mostSpecificMethod = AopUtils.getMostSpecificMethod(method, invocation.getThis().getClass());
+		// 读取@NewSpan注解
 		NewSpan newSpan = SleuthAnnotationUtils.findAnnotation(mostSpecificMethod, NewSpan.class);
+		// 读取@ContinueSpan注解
 		ContinueSpan continueSpan = SleuthAnnotationUtils.findAnnotation(mostSpecificMethod, ContinueSpan.class);
 		if (newSpan == null && continueSpan == null) {
+			// 不存在对应任何注解，跳过不处理
 			return invocation.proceed();
 		}
+		// 使用特定的方法调用处理器处理
 		return methodInvocationProcessor().process(invocation, newSpan, continueSpan);
 	}
 
+	/**
+	 * @return 返回Sleuth方法调用处理器，如果不存在从{@link BeanFactory#getBean(Class)}获取
+	 */
 	private SleuthMethodInvocationProcessor methodInvocationProcessor() {
 		if (this.methodInvocationProcessor == null) {
 			this.methodInvocationProcessor = this.beanFactory.getBean(SleuthMethodInvocationProcessor.class);

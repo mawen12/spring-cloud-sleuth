@@ -32,9 +32,11 @@ import org.springframework.cloud.sleuth.internal.DefaultSpanNamer;
 import org.springframework.lang.NonNull;
 
 /**
- * {@link Executor} that wraps {@link Runnable} in a trace representation.
+ * 用于支持跟踪的{@link Executor}实现。
  *
  * @author Dave Syer
+ * @see TraceRunnable
+ * @see TraceCallable
  * @since 1.0.0
  */
 // public as most types in this package were documented for use
@@ -42,16 +44,31 @@ public class LazyTraceExecutor implements Executor {
 
 	private static final Log log = LogFactory.getLog(LazyTraceExecutor.class);
 
-	private static final Map<Executor, LazyTraceExecutor> CACHE = new ConcurrentHashMap<>();
+	private static final Map<Executor/* 原始的Executor */, LazyTraceExecutor/* 被代理的对象 */> CACHE = new ConcurrentHashMap<>();
 
+	/**
+	 * Bean工厂
+	 */
 	private final BeanFactory beanFactory;
 
+	/**
+	 * 被包装的原始类
+	 */
 	private final Executor delegate;
 
+	/**
+	 * Bean名称
+	 */
 	private final String beanName;
 
+	/**
+	 * 跟踪器
+	 */
 	private Tracer tracer;
 
+	/**
+	 * Span命名器
+	 */
 	private SpanNamer spanNamer;
 
 	public LazyTraceExecutor(BeanFactory beanFactory, Executor delegate) {
@@ -67,10 +84,12 @@ public class LazyTraceExecutor implements Executor {
 	}
 
 	/**
-	 * Wraps the Executor in a trace instance.
-	 * @param beanFactory bean factory
-	 * @param delegate delegate to wrap
-	 * @param beanName bean name
+	 * 将原始的Executor保存到缓存中，并生成其对应的包装类{@link LazyTraceExecutor}
+	 *
+	 * @param beanFactory 能够提供{@link Tracer}和{@link SpanNamer}的Bean工厂
+	 * @param delegate    delegate to wrap
+	 * @param beanName    bean name
+	 *
 	 * @return traced instance
 	 */
 	public static LazyTraceExecutor wrap(BeanFactory beanFactory, @NonNull Executor delegate, String beanName) {
@@ -78,9 +97,11 @@ public class LazyTraceExecutor implements Executor {
 	}
 
 	/**
-	 * Wraps the Executor in a trace instance.
-	 * @param beanFactory bean factory
-	 * @param delegate delegate to wrap
+	 * 将原始的Executor保存到缓存中，并生成其对应的包装类{@link LazyTraceExecutor}
+	 *
+	 * @param beanFactory 能够提供{@link Tracer}和{@link SpanNamer}的Bean工厂
+	 * @param delegate    delegate to wrap
+	 *
 	 * @return traced instance
 	 */
 	public static LazyTraceExecutor wrap(BeanFactory beanFactory, @NonNull Executor delegate) {
@@ -89,29 +110,35 @@ public class LazyTraceExecutor implements Executor {
 
 	@Override
 	public void execute(Runnable command) {
+		// Spring上下文未启动时，直接运行
 		if (ContextUtil.isContextUnusable(this.beanFactory)) {
 			this.delegate.execute(command);
 			return;
 		}
+
 		if (this.tracer == null) {
 			try {
 				this.tracer = this.beanFactory.getBean(Tracer.class);
-			}
-			catch (NoSuchBeanDefinitionException e) {
+			} catch (NoSuchBeanDefinitionException e) {
 				this.delegate.execute(command);
 				return;
 			}
 		}
+		// 将Runnable包装为TraceRunnable，用于在运行时生成Span
 		this.delegate.execute(new TraceRunnable(this.tracer, spanNamer(), command, this.beanName));
 	}
 
 	// due to some race conditions trace keys might not be ready yet
+	/**
+	 * 需要注意的时候，即使不存在SpanNamer这个Bean，会返回{@link DefaultSpanNamer}作为兜底
+	 *
+	 * @return 返回Span名称生成器，如果不存在则从{@link BeanFactory#getBean(Class)}获取，如果BeanFactory中不存在，则返回{@link DefaultSpanNamer}
+	 */
 	private SpanNamer spanNamer() {
 		if (this.spanNamer == null) {
 			try {
 				this.spanNamer = this.beanFactory.getBean(SpanNamer.class);
-			}
-			catch (NoSuchBeanDefinitionException e) {
+			} catch (NoSuchBeanDefinitionException e) {
 				log.warn("SpanNamer bean not found - will provide a manually created instance");
 				return new DefaultSpanNamer();
 			}

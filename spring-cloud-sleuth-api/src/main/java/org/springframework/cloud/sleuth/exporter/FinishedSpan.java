@@ -23,10 +23,9 @@ import org.springframework.cloud.sleuth.Span;
 import org.springframework.lang.Nullable;
 
 /**
- * This API is inspired by OpenZipkin Brave (from {code MutableSpan}).
+ * 此API受到OpenZipkin Brave {@code MutableSpan}的启发。
  *
- * Represents a span that has been finished and is ready to be sent to an external
- * location (e.g. Zipkin).
+ * 代表已完成的Span，并准备发送到外部系统，例如Zipkin
  *
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
@@ -35,49 +34,49 @@ import org.springframework.lang.Nullable;
 public interface FinishedSpan {
 
 	/**
-	 * @return span's name
+	 * @return Span的名称
 	 */
 	String getName();
 
 	/**
-	 * @return span's start timestamp
+	 * @return Span的开始时间戳
 	 */
 	long getStartTimestamp();
 
 	/**
-	 * @return span's end timestamp
+	 * @return Span的结束时间戳
 	 */
 	long getEndTimestamp();
 
 	/**
-	 * @return span's tags
+	 * @return Span的标签
 	 */
 	Map<String, String> getTags();
 
 	/**
-	 * @return span's events as timestamp to value mapping
+	 * @return Span的事件作为时间戳到值的映射
 	 */
 	Collection<Map.Entry<Long, String>> getEvents();
 
 	/**
-	 * @return span's span id
+	 * @return Span的ID
 	 */
 	String getSpanId();
 
 	/**
-	 * @return span's parent id or {@code null} if not set
+	 * @return Span的父级ID
 	 */
 	@Nullable
 	String getParentId();
 
 	/**
-	 * @return span's remote ip
+	 * @return Span的远程ip
 	 */
 	@Nullable
 	String getRemoteIp();
 
 	/**
-	 * @return span's local ip
+	 * @return Span的本地ip
 	 */
 	@Nullable
 	default String getLocalIp() {
@@ -85,28 +84,28 @@ public interface FinishedSpan {
 	}
 
 	/**
-	 * @return span's remote port
+	 * @return Span的远程端口
 	 */
 	int getRemotePort();
 
 	/**
-	 * @return span's trace id
+	 * @return Span的Tracer的ID
 	 */
 	String getTraceId();
 
 	/**
-	 * @return corresponding error or {@code null} if one was not thrown
+	 * @return 关联异常
 	 */
 	@Nullable
 	Throwable getError();
 
 	/**
-	 * @return span's kind
+	 * @return Span的类型
 	 */
 	Span.Kind getKind();
 
 	/**
-	 * @return remote service name or {@code null} if not set
+	 * @return Span的远程服务名称
 	 */
 	@Nullable
 	String getRemoteServiceName();

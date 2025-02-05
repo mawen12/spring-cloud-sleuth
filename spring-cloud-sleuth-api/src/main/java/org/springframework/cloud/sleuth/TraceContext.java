@@ -19,7 +19,7 @@ package org.springframework.cloud.sleuth;
 import org.springframework.lang.Nullable;
 
 /**
- * Contains trace and span data.
+ * 包含跟踪和跨度数据。
  *
  * @author Marcin Grzejszczak
  * @since 3.0.0
@@ -27,67 +27,73 @@ import org.springframework.lang.Nullable;
 public interface TraceContext {
 
 	/**
-	 * Trace id.
+	 * Span的跟踪ID
+	 *
 	 * @return trace id of a span
 	 */
 	String traceId();
 
 	/**
-	 * Parent span id.
+	 * 父级Span的ID
+	 *
 	 * @return parent span id or {@code null} if one is not set
 	 */
 	@Nullable
 	String parentId();
 
 	/**
-	 * Span id.
+	 * Span的ID
 	 * @return span id
 	 */
 	String spanId();
 
 	/**
-	 * @return {@code true} when sampled, {@code false} when not sampled and {@code null}
-	 * when sampling decision should be deferred
+	 * @return 采样时为true，不采样时为false，推迟采样时为null
 	 */
 	Boolean sampled();
 
 	/**
-	 * Builder for {@link TraceContext}.
+	 * {@link TraceContext}的构建器
 	 *
 	 * @since 3.1.0
 	 */
 	interface Builder {
 
 		/**
-		 * Sets trace id on the trace context.
+		 * 设置Span的Trace ID
+		 *
 		 * @param traceId trace id
 		 * @return this
 		 */
 		TraceContext.Builder traceId(String traceId);
 
 		/**
-		 * Sets parent id on the trace context.
+		 * 设置Span的父级的ID
+		 *
 		 * @param parentId parent trace id
 		 * @return this
 		 */
 		TraceContext.Builder parentId(String parentId);
 
 		/**
-		 * Sets span id on the trace context.
+		 * 设置Span的ID
+		 *
 		 * @param spanId span id
 		 * @return this
 		 */
 		TraceContext.Builder spanId(String spanId);
 
 		/**
-		 * Sets sampled on the trace context.
+		 * 设置Span的采集开关
+		 *
 		 * @param sampled if span is sampled
 		 * @return this
 		 */
 		TraceContext.Builder sampled(Boolean sampled);
 
 		/**
-		 * Builds the trace context.
+		 * 构建{@link TraceContext}
+		 *
 		 * @return trace context
 		 */
 		TraceContext build();

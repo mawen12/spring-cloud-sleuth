@@ -38,7 +38,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.Ordered;
 
 /**
- * Listener to represent each connection and sql query as a span.
+ * 监听器将每个连接和SQL查询表示为一个Span
  *
  * @author Arthur Gavlyukovskiy
  * @since 3.1.0
@@ -49,8 +49,7 @@ public class TraceQueryExecutionListener implements QueryExecutionListener, Meth
 
 	private final TraceListenerStrategy<String, Statement, ResultSet> strategy;
 
-	public TraceQueryExecutionListener(BeanFactory beanFactory, List<TraceType> traceTypes,
-			List<TraceListenerStrategySpanCustomizer<? super CommonDataSource>> customizers) {
+	public TraceQueryExecutionListener(BeanFactory beanFactory, List<TraceType> traceTypes, List<TraceListenerStrategySpanCustomizer<? super CommonDataSource>> customizers) {
 		this.strategy = new TraceListenerStrategy<>(beanFactory, traceTypes, customizers);
 	}
 

@@ -25,29 +25,30 @@ import org.springframework.cloud.sleuth.docs.AssertingSpanBuilder;
 import org.springframework.util.StringUtils;
 
 /**
- * Customizer for {@link TraceListenerStrategy} for a {@link HikariDataSource}.
+ * 支持对{@link HikariDataSource}的{@link TraceListenerStrategy}的定制器
  *
  * @author Marcin Grzejszczak
  * @since 3.1.0
  */
-public class TraceHikariListenerStrategySpanCustomizer
-		implements TraceListenerStrategySpanCustomizer<HikariDataSource> {
+public class TraceHikariListenerStrategySpanCustomizer implements TraceListenerStrategySpanCustomizer<HikariDataSource> {
 
 	@Override
 	public void customizeConnectionSpan(HikariDataSource hikariDataSource, Span.Builder spanBuilder) {
-		AssertingSpanBuilder assertingSpanBuilder = AssertingSpanBuilder.of(SleuthJdbcSpan.JDBC_CONNECTION_SPAN,
-				spanBuilder);
+		// 构造断言SpanBuilder
+		AssertingSpanBuilder assertingSpanBuilder = AssertingSpanBuilder.of(SleuthJdbcSpan.JDBC_CONNECTION_SPAN, spanBuilder);
 		if (StringUtils.hasText(hikariDataSource.getDriverClassName())) {
-			assertingSpanBuilder.tag(SleuthJdbcSpan.ConnectionTags.DATASOURCE_DRIVER,
-					hikariDataSource.getDriverClassName());
+			// 将数据源驱动写入标签，key=jdbc.datasource.driver
+			assertingSpanBuilder.tag(SleuthJdbcSpan.ConnectionTags.DATASOURCE_DRIVER, hikariDataSource.getDriverClassName());
 		}
 		if (StringUtils.hasText(hikariDataSource.getPoolName())) {
+			// 将连接池名称写入标签，key=jdbc.datasource.pool
 			assertingSpanBuilder.tag(SleuthJdbcSpan.ConnectionTags.DATASOURCE_POOL, hikariDataSource.getPoolName());
 		}
 	}
 
 	@Override
 	public boolean isApplicable(CommonDataSource dataSource) {
+		// 仅支持HikariDataSource数据源
 		return dataSource instanceof HikariDataSource;
 	}
 

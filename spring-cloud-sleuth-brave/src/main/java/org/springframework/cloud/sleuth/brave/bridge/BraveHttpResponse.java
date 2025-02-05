@@ -24,13 +24,16 @@ import org.springframework.cloud.sleuth.http.HttpRequest;
 import org.springframework.cloud.sleuth.http.HttpResponse;
 
 /**
- * Brave implementation of a {@link HttpResponse}.
+ * 基于Brave实现的{@link HttpResponse}
  *
  * @author Marcin Grzejszczak
  * @since 3.0.0
  */
 class BraveHttpResponse implements HttpResponse {
 
+	/**
+	 * Brave的HttpResponse
+	 */
 	final brave.http.HttpResponse delegate;
 
 	BraveHttpResponse(brave.http.HttpResponse delegate) {
@@ -59,7 +62,7 @@ class BraveHttpResponse implements HttpResponse {
 
 	@Override
 	public Collection<String> headerNames() {
-		// this is unused by Brave
+		// Brave并未提供对应方法
 		return Collections.emptyList();
 	}
 
@@ -82,10 +85,22 @@ class BraveHttpResponse implements HttpResponse {
 		return this.delegate.error();
 	}
 
+	/**
+	 * 将Sleuth的HttpResponse转换为Brave的HttpResponse
+	 *
+	 * @param httpResponse
+	 * @return
+	 */
 	static brave.http.HttpResponse toBrave(HttpResponse httpResponse) {
 		return ((BraveHttpResponse) httpResponse).delegate;
 	}
 
+	/**
+	 * 将Brave的HttpResponse转换为Sleuth的HttpResponse
+	 *
+	 * @param httpResponse
+	 * @return
+	 */
 	static HttpResponse fromBrave(brave.http.HttpResponse httpResponse) {
 		return new BraveHttpResponse(httpResponse);
 	}

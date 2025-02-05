@@ -17,7 +17,7 @@
 package org.springframework.cloud.sleuth.annotation;
 
 /**
- * Resolves the tag value for the given parameter.
+ * 从给定参数中解析Span的标签值
  *
  * @author Christian Schwerdtfeger
  * @since 1.2.0
@@ -25,7 +25,8 @@ package org.springframework.cloud.sleuth.annotation;
 public interface TagValueResolver {
 
 	/**
-	 * Returns the tag value for the given parameter.
+	 * 返回给定参数的标签值
+	 *
 	 * @param parameter - parameter annotated with {@link SpanTag}
 	 * @return the value of the tag
 	 */

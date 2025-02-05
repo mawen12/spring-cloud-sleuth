@@ -23,13 +23,16 @@ import org.springframework.cloud.sleuth.TraceContext;
 import org.springframework.cloud.sleuth.docs.AssertingSpan;
 
 /**
- * Brave implementation of a {@link Span}.
+ * 基于Brave实现的{@link Span}。
  *
  * @author Marcin Grzejszczak
  * @since 3.0.0
  */
 public class BraveSpan implements Span {
 
+	/**
+	 * Brave的Span
+	 */
 	final brave.Span delegate;
 
 	public BraveSpan(brave.Span delegate) {
@@ -51,54 +54,65 @@ public class BraveSpan implements Span {
 
 	@Override
 	public Span start() {
+		// 开启Brave的Span
 		this.delegate.start();
 		return this;
 	}
 
 	@Override
 	public Span name(String name) {
+		// 设置Brave的Span的名称
 		this.delegate.name(name);
 		return this;
 	}
 
 	@Override
 	public Span event(String value) {
+		// 设置Brave的Span的事件名称
 		this.delegate.annotate(value);
 		return this;
 	}
 
 	@Override
 	public Span tag(String key, String value) {
+		// 设置Brave的Span的标签
 		this.delegate.tag(key, value);
 		return this;
 	}
 
 	@Override
 	public Span error(Throwable throwable) {
+		// 提取异常信息
 		String message = throwable.getMessage() == null ? throwable.getClass().getSimpleName() : throwable.getMessage();
+		// 设置Brave的Span的异常标签
 		this.delegate.tag("error", message);
+		// 设置Brave的Span的错误异常
 		this.delegate.error(throwable);
 		return this;
 	}
 
 	@Override
 	public void end() {
+		// 停止Brave的Span，并记录
 		this.delegate.finish();
 	}
 
 	@Override
 	public void abandon() {
+		// 设置Brave的Span，不记录
 		this.delegate.abandon();
 	}
 
 	@Override
 	public Span remoteServiceName(String remoteServiceName) {
+		// 设置Brave的Span的远程服务名称
 		this.delegate.remoteServiceName(remoteServiceName);
 		return this;
 	}
 
 	@Override
 	public Span remoteIpAndPort(String ip, int port) {
+		// 设置Brave的Span的远程ip和端口
 		this.delegate.remoteIpAndPort(ip, port);
 		return this;
 	}
@@ -108,6 +122,12 @@ public class BraveSpan implements Span {
 		return this.delegate != null ? this.delegate.toString() : "null";
 	}
 
+	/**
+	 * 将Sleuth的Span转换为Brave的Span
+	 *
+	 * @param span
+	 * @return
+	 */
 	public static brave.Span toBrave(Span span) {
 		BraveSpan unwrap = (BraveSpan) AssertingSpan.unwrap(span);
 		if (unwrap == null) {
@@ -116,6 +136,12 @@ public class BraveSpan implements Span {
 		return unwrap.delegate;
 	}
 
+	/**
+	 * 将Brave的Span转换为Sleuth的Span
+	 *
+	 * @param span
+	 * @return
+	 */
 	public static Span fromBrave(brave.Span span) {
 		return new BraveSpan(span);
 	}

@@ -18,12 +18,20 @@ package org.springframework.cloud.sleuth.instrument.circuitbreaker;
 
 import org.springframework.cloud.sleuth.docs.DocumentedSpan;
 
+/**
+ * 代表Spring Cloud Sleuth Circuit Breaker的Span
+ *
+ * <p>支持Spring Cloud Circuit Breaker
+ */
 enum SleuthCircuitBreakerSpan implements DocumentedSpan {
 
 	/**
-	 * Span created when we wrap a Supplier passed to the CircuitBreaker.
+	 * 当包装传递给CircuitBreaker的{@link java.util.function.Supplier}时创建的Span
 	 */
 	CIRCUIT_BREAKER_SUPPLIER_SPAN {
+		/**
+		 * @return 名称要求，任意字符串
+		 */
 		@Override
 		public String getName() {
 			return "%s";
@@ -31,9 +39,12 @@ enum SleuthCircuitBreakerSpan implements DocumentedSpan {
 	},
 
 	/**
-	 * Span created when we wrap a Function passed to the CircuitBreaker. as fallback.
+	 * 当包装传递给CircuitBreaker的{@link java.util.function.Function}时创建的Span，作为fallback
 	 */
 	CIRCUIT_BREAKER_FUNCTION_SPAN {
+		/**
+		 * @return 名称要求，任意字符串
+		 */
 		@Override
 		public String getName() {
 			return "%s";

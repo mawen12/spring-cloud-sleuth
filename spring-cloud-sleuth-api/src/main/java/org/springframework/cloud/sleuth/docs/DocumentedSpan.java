@@ -20,19 +20,16 @@ import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.SpanCustomizer;
 
 /**
- * In order to describe your spans via e.g. enums instead of Strings you can use this
- * interface that returns all the characteristics of a span. In Spring Cloud Sleuth we
- * analyze the sources and reuse this information to build a table of known spans, their
- * names, tags and events.
+ * 为了通过枚举而不是字符串来描述Span，可以使用此接口返回跨度的所有特征。
+ * 在Spring Cloud Sleuth中，我们分析来源并重用此信息来构建已知Span，名称，标签，事件的表格。
  *
- * We can generate documentation for all created spans but certain requirements need to be
- * met
- *
- * - spans are grouped within an enum - the enum implements the {@link DocumentedSpan}
- * interface - if the span contains {@link TagKey} or {@link EventValue} then those need
- * to be declared as nested enums - the {@link DocumentedSpan#getTagKeys()} and
- * {@link DocumentedSpan#getEvents()} need to call the nested enum's {@code values()}
- * method to retrieve the array of allowed keys / events
+ * <p>我们可以为所有创建的Span生成文档，当需要满足某些要求：
+ * <ul>
+ *     <li>
+ *         跨度分组在枚举中 - 枚举实现 {@link DocumentedSpan}，如果Span包含{@link TagKey}和{@link EventValue}，
+ *     		则需要将它们声明为嵌套枚举，{@link #getTagKeys()}和{@link #getEvents()}需要调用嵌套枚举的{@code Enum#values()}来检索允许的键/事件的数组
+ *     </li>
+ * </ul>
  *
  * @author Marcin Grzejszczak
  * @since 3.1.0
@@ -40,36 +37,38 @@ import org.springframework.cloud.sleuth.SpanCustomizer;
 public interface DocumentedSpan {
 
 	/**
-	 * @return span name
+	 * @return Span名称
 	 */
 	String getName();
 
 	/**
-	 * @return allowed tag keys
+	 * @return 允许的标签键
 	 */
 	default TagKey[] getTagKeys() {
 		return new TagKey[0];
 	}
 
 	/**
-	 * @return allowed events
+	 * @return 允许的事件
 	 */
 	default EventValue[] getEvents() {
 		return new EventValue[0];
 	}
 
 	/**
-	 * Returns required prefix to be there for events and tags. Example {@code foo.} would
-	 * require the tags and events to have a {code foo} prefix like this for tags:
-	 * {@code foo.bar=true} and {@code foo.started} for events.
-	 * @return required prefix
+	 * 返回需要用于事件和标签的前缀。例如：{@code foo.}将要求标签和事件具有{@code foo}前缀。
+	 * 例如标签: {@code foo.bar=true}
+	 * 例如事件：{@code foo.started}
+	 *
+	 * @return 所需的标签前缀
 	 */
 	default String prefix() {
 		return "";
 	}
 
 	/**
-	 * Asserts on tags, names and allowed events.
+	 * 断言标签、名称、和允许的事件
+	 *
 	 * @param span to wrap
 	 * @return wrapped span
 	 */
@@ -84,7 +83,8 @@ public interface DocumentedSpan {
 	}
 
 	/**
-	 * Asserts on tags, names and allowed events.
+	 * 断言标签、名称、和允许的事件
+	 *
 	 * @param span to wrap
 	 * @return wrapped span
 	 */
@@ -99,7 +99,8 @@ public interface DocumentedSpan {
 	}
 
 	/**
-	 * Asserts on tags, names and allowed events.
+	 * 断言标签、名称、和允许的事件
+	 *
 	 * @param span builder to wrap
 	 * @return wrapped span
 	 */

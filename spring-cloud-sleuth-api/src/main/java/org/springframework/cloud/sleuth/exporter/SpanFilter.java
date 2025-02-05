@@ -17,8 +17,7 @@
 package org.springframework.cloud.sleuth.exporter;
 
 /**
- * An interface that allows to filter whether a given reported span should be exported or
- * not.
+ * 允许对给定上报的Span进行过滤，确认其是否上报的接口
  *
  * @author Marcin Grzejszczak
  * @since 3.0.0
@@ -26,7 +25,8 @@ package org.springframework.cloud.sleuth.exporter;
 public interface SpanFilter {
 
 	/**
-	 * Called to export sampled {@code Span}s.
+	 * 是否应该上报Span
+	 *
 	 * @param span the collection of sampled Spans to be exported.
 	 * @return whether should export spans
 	 */

@@ -22,10 +22,19 @@ import java.util.function.Supplier;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
 import org.springframework.cloud.sleuth.Tracer;
 
+/**
+ * 用于支持跟踪的{@link CircuitBreaker}实现
+ */
 class TraceCircuitBreaker implements CircuitBreaker {
 
+	/**
+	 * 原始的CircuitBreaker
+	 */
 	private final CircuitBreaker delegate;
 
+	/**
+	 * 跟踪器
+	 */
 	private final Tracer tracer;
 
 	TraceCircuitBreaker(CircuitBreaker delegate, Tracer tracer) {
@@ -35,11 +44,13 @@ class TraceCircuitBreaker implements CircuitBreaker {
 
 	@Override
 	public <T> T run(Supplier<T> toRun, Function<Throwable, T> fallback) {
+		// 将Supplier包装为TraceSupplier，Function包装为TraceFunction
 		return this.delegate.run(new TraceSupplier<>(this.tracer, toRun), new TraceFunction<>(this.tracer, fallback));
 	}
 
 	@Override
 	public <T> T run(Supplier<T> toRun) {
+		// 将Supplier包装为TraceSupplier
 		return this.delegate.run(new TraceSupplier<>(this.tracer, toRun));
 	}
 

@@ -17,22 +17,22 @@
 package org.springframework.cloud.sleuth.instrument.jdbc;
 
 /**
- * Trace types.
+ * 根据类型
  */
 public enum TraceType {
 
 	/**
-	 * Related to JDBC connections.
+	 * 与JDBC连接相关
 	 */
 	CONNECTION,
 
 	/**
-	 * Related to query executions.
+	 * 与查询执行相关
 	 */
 	QUERY,
 
 	/**
-	 * Related to ResultSets.
+	 * 与结果集相关
 	 */
 	FETCH
 

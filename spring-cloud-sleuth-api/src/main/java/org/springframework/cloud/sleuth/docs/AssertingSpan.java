@@ -20,12 +20,11 @@ import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.TraceContext;
 
 /**
- * {@link Span} that performs additional assertions such as allowed name, tag, event
- * verification and upon reporting, whether the span had been started in the first place.
+ * 可以对自身执行断言的{@link Span}。
  *
- * You need to turn on assertions via system properties or environment variables to start
- * breaking your tests or production code. Check {@link DocumentedSpanAssertions} for more
- * information.
+ * <p>负责执行其它断言，例如允许的名称、标签、事件验证，并在报告时确定跨度是否已首先启动。
+ *
+ * <p>你需要通过系统属性或环境变量启用断言才能开始中断测试或生产代码。查看{@link DocumentedSpanAssertions}获取更多信息。
  *
  * @author Marcin Grzejszczak
  * @since 3.1.0
@@ -33,17 +32,17 @@ import org.springframework.cloud.sleuth.TraceContext;
 public interface AssertingSpan extends Span {
 
 	/**
-	 * @return a {@link DocumentedSpan} with span configuration
+	 * @return 包含Span配置的 {@link DocumentedSpan}
 	 */
 	DocumentedSpan getDocumentedSpan();
 
 	/**
-	 * @return wrapped {@link Span}
+	 * @return 原始的Span
 	 */
 	Span getDelegate();
 
 	/**
-	 * @return {@code true} when this span was started
+	 * @return {@code true} 在已启动时
 	 */
 	default boolean isStarted() {
 		return false;
@@ -51,7 +50,9 @@ public interface AssertingSpan extends Span {
 
 	@Override
 	default AssertingSpan tag(String key, String value) {
+		// 校验key合法
 		DocumentedSpanAssertions.assertThatKeyIsValid(key, getDocumentedSpan());
+		// 设置到原始的Span上
 		getDelegate().tag(key, value);
 		return this;
 	}
@@ -63,14 +64,18 @@ public interface AssertingSpan extends Span {
 	 * @return this for chaining
 	 */
 	default AssertingSpan tag(TagKey key, String value) {
+		// 校验key合法
 		DocumentedSpanAssertions.assertThatKeyIsValid(key, getDocumentedSpan());
+		// 设置到原始的Span上
 		getDelegate().tag(key.getKey(), value);
 		return this;
 	}
 
 	@Override
 	default AssertingSpan event(String value) {
+		// 校验事件合法
 		DocumentedSpanAssertions.assertThatEventIsValid(value, getDocumentedSpan());
+		// 设置到原始的Span上
 		getDelegate().event(value);
 		return this;
 	}
@@ -81,14 +86,18 @@ public interface AssertingSpan extends Span {
 	 * @return this for chaining
 	 */
 	default AssertingSpan event(EventValue value) {
+		// 校验事件合法
 		DocumentedSpanAssertions.assertThatEventIsValid(value, getDocumentedSpan());
+		// 设置到原始的Span上
 		getDelegate().event(value.getValue());
 		return this;
 	}
 
 	@Override
 	default AssertingSpan name(String name) {
+		// 校验名称合法
 		DocumentedSpanAssertions.assertThatNameIsValid(name, getDocumentedSpan());
+		// 设置到原始的Span上
 		getDelegate().name(name);
 		return this;
 	}
@@ -105,19 +114,23 @@ public interface AssertingSpan extends Span {
 
 	@Override
 	default AssertingSpan start() {
+		// 启动Span
 		getDelegate().start();
 		return this;
 	}
 
 	@Override
 	default AssertingSpan error(Throwable throwable) {
+		// 设置异常信息
 		getDelegate().error(throwable);
 		return this;
 	}
 
 	@Override
 	default void end() {
+		// 校验Span已经启动
 		DocumentedSpanAssertions.assertThatSpanStartedBeforeEnd(this);
+		// 结束Span
 		getDelegate().end();
 	}
 
@@ -128,12 +141,14 @@ public interface AssertingSpan extends Span {
 
 	@Override
 	default AssertingSpan remoteServiceName(String remoteServiceName) {
+		// 设置远程服务信息
 		getDelegate().remoteServiceName(remoteServiceName);
 		return this;
 	}
 
 	@Override
 	default Span remoteIpAndPort(String ip, int port) {
+		// 设置远程ip和端口
 		getDelegate().remoteIpAndPort(ip, port);
 		return this;
 	}
@@ -168,7 +183,8 @@ public interface AssertingSpan extends Span {
 	}
 
 	/**
-	 * Returns the underlying delegate. Used when casting is necessary.
+	 * 返回底层委托，在需要强制转换时使用
+	 *
 	 * @param span span to check for wrapping
 	 * @param <T> type extending a span
 	 * @return unwrapped object

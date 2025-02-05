@@ -24,28 +24,38 @@ import net.ttddyy.dsproxy.support.ProxyDataSourceBuilder;
 import org.springframework.core.Ordered;
 
 /**
- * {@link Ordered} decorator for {@link ProxyDataSource}.
+ * 用于{@link ProxyDataSource}的装饰器，支持{@link Ordered}
+ *
  *
  * @author Arthur Gavlyukovskiy
  * @since 3.1.0
  */
 public class DataSourceProxyDataSourceDecorator implements DataSourceDecorator, Ordered {
 
+	/**
+	 * 数据源代理构建器自定义器
+	 */
 	private final DataSourceProxyBuilderCustomizer dataSourceProxyBuilderCustomizer;
 
+	/**
+	 * 数据源名称解析器
+	 */
 	private final DataSourceNameResolver dataSourceNameResolver;
 
-	public DataSourceProxyDataSourceDecorator(DataSourceProxyBuilderCustomizer dataSourceProxyBuilderCustomizer,
-			DataSourceNameResolver dataSourceNameResolver) {
+	public DataSourceProxyDataSourceDecorator(DataSourceProxyBuilderCustomizer dataSourceProxyBuilderCustomizer, DataSourceNameResolver dataSourceNameResolver) {
 		this.dataSourceProxyBuilderCustomizer = dataSourceProxyBuilderCustomizer;
 		this.dataSourceNameResolver = dataSourceNameResolver;
 	}
 
 	@Override
 	public DataSource decorate(String beanName, DataSource dataSource) {
+		// 创建代理数据源构建器
 		ProxyDataSourceBuilder proxyDataSourceBuilder = ProxyDataSourceBuilder.create();
+		// 自定义代理数据源构建器
 		proxyDataSourceBuilder = this.dataSourceProxyBuilderCustomizer.customize(proxyDataSourceBuilder);
+		// 从数据源中获取数据源名称
 		String dataSourceName = this.dataSourceNameResolver.resolveDataSourceName(dataSource);
+		// 将DataSource包装为ProxyDataSource
 		return proxyDataSourceBuilder.dataSource(dataSource).name(dataSourceName).build();
 	}
 

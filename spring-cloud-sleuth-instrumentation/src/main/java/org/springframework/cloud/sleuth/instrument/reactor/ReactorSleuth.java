@@ -408,8 +408,7 @@ public abstract class ReactorSleuth {
 	 */
 	public static <T> Mono<T> tracedMono(@NonNull Tracer tracer, @NonNull CurrentTraceContext currentTraceContext,
 			@NonNull String childSpanName, @NonNull Supplier<Mono<T>> supplier) {
-		return tracedMono(tracer, currentTraceContext, childSpanName, supplier, (o, span) -> {
-		});
+		return tracedMono(tracer, currentTraceContext, childSpanName, supplier, (o, span) -> {});
 	}
 
 	/**

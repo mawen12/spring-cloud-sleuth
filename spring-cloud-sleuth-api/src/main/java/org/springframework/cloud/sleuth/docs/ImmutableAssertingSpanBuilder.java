@@ -22,6 +22,9 @@ import org.springframework.cloud.sleuth.Span;
 
 import static java.util.Objects.requireNonNull;
 
+/**
+ * {@link ImmutableAssertingSpan}的构建器
+ */
 class ImmutableAssertingSpanBuilder implements AssertingSpanBuilder {
 
 	private final DocumentedSpan documentedSpan;

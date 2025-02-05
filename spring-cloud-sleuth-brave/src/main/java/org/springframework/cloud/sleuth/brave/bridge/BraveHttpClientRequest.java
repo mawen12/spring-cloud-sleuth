@@ -23,13 +23,16 @@ import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.http.HttpClientRequest;
 
 /**
- * Brave implementation of a {@link HttpClientRequest}.
+ * 基于Brave实现的{@link HttpClientRequest}
  *
  * @author Marcin Grzejszczak
  * @since 3.0.0
  */
 class BraveHttpClientRequest implements HttpClientRequest {
 
+	/**
+	 * Brave的HttpClientRequest
+	 */
 	final brave.http.HttpClientRequest delegate;
 
 	BraveHttpClientRequest(brave.http.HttpClientRequest delegate) {
@@ -53,7 +56,7 @@ class BraveHttpClientRequest implements HttpClientRequest {
 
 	@Override
 	public Collection<String> headerNames() {
-		// this is unused by Brave
+		// Brave并未提供对应方法
 		return Collections.emptyList();
 	}
 
@@ -82,6 +85,12 @@ class BraveHttpClientRequest implements HttpClientRequest {
 		return this.delegate.header(name);
 	}
 
+	/**
+	 * 将Sleuth的HttpClientRequest转换为Brave的HttpClientRequest
+	 *
+	 * @param httpClientRequest
+	 * @return
+	 */
 	static brave.http.HttpClientRequest toBrave(HttpClientRequest httpClientRequest) {
 		if (httpClientRequest instanceof BraveHttpClientRequest) {
 			return ((BraveHttpClientRequest) httpClientRequest).delegate;

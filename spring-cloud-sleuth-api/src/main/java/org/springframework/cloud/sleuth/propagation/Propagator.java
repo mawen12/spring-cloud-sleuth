@@ -23,12 +23,10 @@ import org.springframework.cloud.sleuth.TraceContext;
 import org.springframework.lang.Nullable;
 
 /**
- * Inspired by OpenZipkin Brave and OpenTelemetry. Most of the documentation is taken
- * directly from OpenTelemetry.
+ * 灵感来自于OpenZipkin Brave和OpenTelemetry，大部分文档直接来自于OpenTelemetry.
  *
- * Injects and extracts a value as text into carriers that travel in-band across process
- * boundaries. Encoding is expected to conform to the HTTP Header Field semantics. Values
- * are often encoded as RPC/HTTP request headers.
+ * <p>将值作为文本注入并提取到跨进程边界带内传输的载体中。编码应符合HTTP标头字段语义。
+ * 值通常被编码为RPC/HTTP请求标头。
  *
  * @author OpenZipkin Brave Authors
  * @author OpenTelemetry Authors
@@ -38,14 +36,14 @@ import org.springframework.lang.Nullable;
 public interface Propagator {
 
 	/**
-	 * @return collection of headers that contain tracing information
+	 * @return 返回带有跟踪信息的标头集合
 	 */
 	List<String> fields();
 
 	/**
-	 * Injects the value downstream, for example as HTTP headers. The carrier may be null
-	 * to facilitate calling this method with a lambda for the {@link Setter}, in which
-	 * case that null will be passed to the {@link Setter} implementation.
+	 * 将值注入下游，例如作为HTTP标头。载体可以为null，以便使用{@link Setter}的lambda调用此方法。
+	 * 在这种情况下，该null将传递给{@link Setter}实现。
+	 *
 	 * @param context the {@code Context} containing the value to be injected.
 	 * @param carrier holds propagation fields. For example, an outgoing message or http
 	 * request.
@@ -55,12 +53,10 @@ public interface Propagator {
 	<C> void inject(TraceContext context, @Nullable C carrier, Setter<C> setter);
 
 	/**
-	 * Extracts the value from upstream. For example, as http headers.
+	 * 从上游提取值，例如HTTP标头。
 	 *
-	 * <p>
-	 * If the value could not be parsed, the underlying implementation will decide to set
-	 * an object representing either an empty value, an invalid value, or a valid value.
-	 * Implementation must not set {@code null}.
+	 * <p>如果值不能被解析，将由底层实现决定设置一个表示空值、无效值或有效值的对象。实现不得设置{@code null}。
+	 *
 	 * @param carrier holds propagation fields. For example, an outgoing message or http
 	 * request.
 	 * @param getter invoked for each propagation key to get.
@@ -70,12 +66,9 @@ public interface Propagator {
 	<C> Span.Builder extract(C carrier, Getter<C> getter);
 
 	/**
-	 * Class that allows a {@code TextMapPropagator} to set propagated fields into a
-	 * carrier.
+	 * 允许{@code TextMapPropagator}将传播字段设置到载体中的类
 	 *
-	 * <p>
-	 * {@code Setter} is stateless and allows to be saved as a constant to avoid runtime
-	 * allocations.
+	 * <p>{@link Setter}是一个无状态，且允许保存为常量以避免运行时分配
 	 *
 	 * @param <C> carrier of propagation fields, such as an http request
 	 * @since 0.1.0
@@ -83,12 +76,10 @@ public interface Propagator {
 	interface Setter<C> {
 
 		/**
-		 * Replaces a propagated field with the given value.
+		 * 用给定值替换传播的字段
 		 *
-		 * <p>
-		 * For example, a setter for an {@link java.net.HttpURLConnection} would be the
-		 * method reference
-		 * {@link java.net.HttpURLConnection#addRequestProperty(String, String)}
+		 * <p>例如，用于{@link java.net.HttpURLConnection}可能是方法引用{@link java.net.HttpURLConnection#addRequestProperty(String, String)}
+		 *
 		 * @param carrier holds propagation fields. For example, an outgoing message or
 		 * http request. To facilitate implementations as java lambdas, this parameter may
 		 * be null.
@@ -100,20 +91,17 @@ public interface Propagator {
 	}
 
 	/**
-	 * Interface that allows a {@code TextMapPropagator} to read propagated fields from a
-	 * carrier.
+	 * 允许{@code TextMapPropagator} 从载体读取传播字段的接口
 	 *
-	 * <p>
-	 * {@code Getter} is stateless and allows to be saved as a constant to avoid runtime
-	 * allocations.
+	 * <p> {@link Getter}是一个无状态，且允许保存为常量以避免运行时分配
 	 *
 	 * @param <C> carrier of propagation fields, such as an http request.
 	 */
 	interface Getter<C> {
 
 		/**
-		 * Returns the first value of the given propagation {@code key} or returns
-		 * {@code null}.
+		 * 返回给定传播{@code key}的第一个值或返回{@code null}.
+		 *
 		 * @param carrier carrier of propagation fields, such as an http request.
 		 * @param key the key of the field.
 		 * @return the first value of the given propagation {@code key} or returns

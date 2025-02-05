@@ -19,9 +19,9 @@ package org.springframework.cloud.sleuth.http;
 import org.springframework.lang.Nullable;
 
 /**
- * This API is taken from OpenZipkin Brave.
+ * 此API取自OpenZipkin Brave
  *
- * Abstract request type used for parsing and sampling. Represents an HTTP request.
+ * <p>用于解析和采样的抽象请求，代表一个HTTP请求
  *
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
@@ -30,21 +30,20 @@ import org.springframework.lang.Nullable;
 public interface HttpRequest extends Request {
 
 	/**
-	 * @return HTTP method.
+	 * @return HTTP 方法
 	 */
 	String method();
 
 	/**
-	 * @return HTTP path or {@code null} if not set.
+	 * @return HTTP路径或者 {@code null}当未设置时
 	 */
 	@Nullable
 	String path();
 
 	/**
-	 * Returns an expression such as "/items/:itemId" representing an application
-	 * endpoint, conventionally associated with the tag key "http.route". If no route
-	 * matched, "" (empty string) is returned. {@code null} indicates this instrumentation
-	 * doesn't understand http routes.
+	 * 返回一个类似于{@code /items/:itemId/}的表达式，代表应用端点，常规与标签键"http.route"相关联。
+	 * 如果没有路由匹配，则返回{@code ""}空字符串。{@code null}代表该仪器不理解http路由
+	 *
 	 * @return HTTP route or {@code null} if not set.
 	 */
 	@Nullable
@@ -53,27 +52,27 @@ public interface HttpRequest extends Request {
 	}
 
 	/**
-	 * @return HTTP URL or {@code null} if not set.
+	 * @return HTTP URL或者 {@code null}当未设置时
 	 */
 	@Nullable
 	String url();
 
 	/**
 	 * @param name header name
-	 * @return HTTP header or {@code null} if not set.
+	 * @return HTTP标头值或 {@link null}当未设置时
 	 */
 	@Nullable
 	String header(String name);
 
 	/**
-	 * @return remote IP for the given connection.
+	 * @return 给定连接的远程ip
 	 */
 	default String remoteIp() {
 		return null;
 	}
 
 	/**
-	 * @return remote port for the given connection.
+	 * @return 给定连接的远程端口
 	 */
 	default int remotePort() {
 		return 0;

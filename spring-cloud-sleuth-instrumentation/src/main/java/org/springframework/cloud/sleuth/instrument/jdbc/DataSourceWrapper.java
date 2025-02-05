@@ -21,7 +21,7 @@ import javax.sql.DataSource;
 import org.springframework.jdbc.datasource.DelegatingDataSource;
 
 /**
- * Returns link of both real {@link DataSource}, decorated {@link DataSource}.
+ * 返回真实的{@link DataSource}和装饰后的{@link DataSource}
  *
  * @author Arthur Gavlyukovskiy
  * @since 3.1.0

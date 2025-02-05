@@ -31,8 +31,7 @@ import org.springframework.cloud.sleuth.internal.SpanNameUtil;
 import org.springframework.util.ReflectionUtils;
 
 /**
- * Aspect that creates a new Span for running threads executing methods annotated with
- * {@link org.springframework.scheduling.annotation.Async} annotation.
+ * 在线程运行具有{@link org.springframework.scheduling.annotation.Async}注解的方法时创建一个新的Span的切面
  *
  * @author Marcin Grzejszczak
  * @since 1.0.0
@@ -41,8 +40,14 @@ import org.springframework.util.ReflectionUtils;
 @Aspect
 public class TraceAsyncAspect {
 
+	/**
+	 * 跟踪器
+	 */
 	private final Tracer tracer;
 
+	/**
+	 * Span名称生成器
+	 */
 	private final SpanNamer spanNamer;
 
 	public TraceAsyncAspect(Tracer tracer, SpanNamer spanNamer) {
@@ -50,29 +55,51 @@ public class TraceAsyncAspect {
 		this.spanNamer = spanNamer;
 	}
 
+	/**
+	 * 拦截{@link org.springframework.scheduling.annotation.Async}注解
+	 *
+	 * @param pjp
+	 * @return
+	 * @throws Throwable
+	 */
 	@Around("execution (@org.springframework.scheduling.annotation.Async  * *.*(..))")
 	public Object traceBackgroundThread(final ProceedingJoinPoint pjp) throws Throwable {
+		// 解析Span名称
 		String spanName = name(pjp);
+		// 获取当前Span
 		Span span = this.tracer.currentSpan();
 		if (span == null) {
+			// 创建新的Span
 			span = this.tracer.nextSpan();
 		}
+		// 创建可断言的Span
 		AssertingSpan assertingSpan = SleuthAsyncSpan.ASYNC_ANNOTATION_SPAN.wrap(span).name(spanName);
+		// 启动Span，并设置为当前Span
 		try (Tracer.SpanInScope ws = this.tracer.withSpan(assertingSpan.start())) {
+			// 添加标签，标签组成为：class=pjp.getTarget().getClass().getSimpleName(), method=pjp.getSignature().getName()
 			assertingSpan.tag(SleuthAsyncSpan.Tags.CLASS, pjp.getTarget().getClass().getSimpleName())
 					.tag(SleuthAsyncSpan.Tags.METHOD, pjp.getSignature().getName());
+			// 执行原始调用
 			return pjp.proceed();
 		}
 		finally {
+			// 结束范围
 			assertingSpan.end();
 		}
 	}
 
 	String name(ProceedingJoinPoint pjp) {
-		return this.spanNamer.name(getMethod(pjp, pjp.getTarget()),
-				SpanNameUtil.toLowerHyphen(pjp.getSignature().getName()));
+		// 以拦截的方法名称作为Span名称，如果不存在则以切面签名作为Span名称
+		return this.spanNamer.name(getMethod(pjp, pjp.getTarget()), SpanNameUtil.toLowerHyphen(pjp.getSignature().getName()));
 	}
 
+	/**
+	 * 获取拦截的方法名称
+	 *
+	 * @param pjp
+	 * @param object
+	 * @return
+	 */
 	private Method getMethod(ProceedingJoinPoint pjp, Object object) {
 		MethodSignature signature = (MethodSignature) pjp.getSignature();
 		Method method = signature.getMethod();

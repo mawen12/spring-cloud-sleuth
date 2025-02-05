@@ -21,11 +21,9 @@ import org.springframework.cloud.sleuth.TraceContext;
 import org.springframework.lang.Nullable;
 
 /**
- * This API is taken from OpenZipkin Brave.
+ * 此API取自OpenZipkin Brave
  *
- * This standardizes a way to instrument http clients, particularly in a way that
- * encourages use of portable customizations via {@link HttpRequestParser} and
- * {@link HttpResponseParser}.
+ * <p>标准化了一种检测http客户端的方法，特别是鼓励通过{@link HttpRequestParser}和{@link HttpResponseParser}使用可移植定制的方式。
  *
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
@@ -34,27 +32,27 @@ import org.springframework.lang.Nullable;
 public interface HttpClientHandler {
 
 	/**
-	 * Starts the client span after assigning it a name and tags. This injects the trace
-	 * context onto the request before returning.
+	 * 在分配Span名称和标签后启动客户端Span。在返回之前将跟踪上下文注入到请求中。
 	 *
-	 * Call this before sending the request on the wire.
+	 * <p>在线发送请求之前调用此函数
+	 *
 	 * @param request to inject the tracing context with
-	 * @return client side span
+	 * @return 客户端侧Span
 	 */
 	Span handleSend(HttpClientRequest request);
 
 	/**
-	 * Same as {@link #handleSend(HttpClientRequest)} but with an explicit parent
-	 * {@link TraceContext}.
+	 * 与{@link #handleSend(HttpClientRequest)}类似但存在明确的父级{@link TraceContext}
+	 *
 	 * @param request to inject the tracing context with
 	 * @param parent {@link TraceContext} that is to be the client side span's parent
-	 * @return client side span
+	 * @return 客户端侧Span
 	 */
 	Span handleSend(HttpClientRequest request, @Nullable TraceContext parent);
 
 	/**
-	 * Finishes the client span after assigning it tags according to the response or
-	 * error.
+	 * 根据响应或错误分配标签后完成客户端Span
+	 *
 	 * @param response the HTTP response
 	 * @param span span to be ended
 	 */

@@ -20,9 +20,9 @@ import org.springframework.cloud.sleuth.SpanCustomizer;
 import org.springframework.cloud.sleuth.TraceContext;
 
 /**
- * This API is taken from OpenZipkin Brave.
+ * 此API取自OpenZipkin Brave
  *
- * Use this to control the response data recorded.
+ * <p>用于控制记录的响应数据
  *
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
@@ -31,8 +31,8 @@ import org.springframework.cloud.sleuth.TraceContext;
 public interface HttpResponseParser {
 
 	/**
-	 * Implement to choose what data from the http response are parsed into the span
-	 * representing it.
+	 * 实现将选择将http响应中的哪些数据解析到代表它的Span中。
+	 *
 	 * @param response current response
 	 * @param context corresponding trace context
 	 * @param span customizer for the current span

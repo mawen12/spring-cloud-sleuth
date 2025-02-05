@@ -23,6 +23,9 @@ import java.util.regex.Pattern;
 
 import static java.util.regex.Pattern.compile;
 
+/**
+ * Span名称提供器，取SQL的第一个单词作为名称，如果为空，默认为query
+ */
 class SpanNameProvider {
 
 	private static final String DEFAULT_SPAN_NAME = "query";

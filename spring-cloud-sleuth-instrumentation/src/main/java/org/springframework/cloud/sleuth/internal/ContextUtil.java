@@ -22,7 +22,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.BeanFactory;
 
 /**
- * Utility class that verifies that context is in creation. Do not use.
+ * 用于验证上下文是否正在创建的应用程序类。请勿使用。
  *
  * @author Marcin Grzejszczak
  * @since 2.1.0
@@ -36,16 +36,16 @@ public final class ContextUtil {
 	private static final Log log = LogFactory.getLog(ContextUtil.class);
 
 	/**
+	 * 检查指定Spring上下文是否未启动
+	 *
 	 * @param beanFactory bean factory
 	 * @return {@code true} when context is not ready to be used
 	 */
 	public static boolean isContextUnusable(BeanFactory beanFactory) {
-		org.springframework.cloud.sleuth.internal.SleuthContextListener listener = org.springframework.cloud.sleuth.internal.SleuthContextListener
-				.getBean(beanFactory);
+		org.springframework.cloud.sleuth.internal.SleuthContextListener listener = org.springframework.cloud.sleuth.internal.SleuthContextListener.getBean(beanFactory);
 		boolean contextUnusable = listener.isUnusable();
 		if (contextUnusable && log.isDebugEnabled()) {
-			log.debug("Context [" + Integer.toHexString(beanFactory.hashCode())
-					+ "] is either not refreshed or is closed");
+			log.debug("Context [" + Integer.toHexString(beanFactory.hashCode()) + "] is either not refreshed or is closed");
 		}
 		return contextUnusable;
 	}

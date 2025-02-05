@@ -39,7 +39,9 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.concurrent.ListenableFuture;
 
 /**
- * Trace representation of {@link ThreadPoolTaskExecutor}.
+ * 用于支持跟踪的{@link ThreadPoolTaskExecutor}的实现
+ *
+ * <p>由于线程池执行任务是从任务队列取出的，可能存在延迟的情况
  *
  * @author Marcin Grzejszczak
  * @since 1.0.10
@@ -49,16 +51,31 @@ public class LazyTraceThreadPoolTaskExecutor extends ThreadPoolTaskExecutor {
 
 	private static final Log log = LogFactory.getLog(LazyTraceThreadPoolTaskExecutor.class);
 
-	private static final Map<ThreadPoolTaskExecutor, LazyTraceThreadPoolTaskExecutor> CACHE = new ConcurrentHashMap<>();
+	private static final Map<ThreadPoolTaskExecutor/* 原始实例 */, LazyTraceThreadPoolTaskExecutor/* 被代理的对象 */> CACHE = new ConcurrentHashMap<>();
 
+	/**
+	 * Bean工厂
+	 */
 	private final BeanFactory beanFactory;
 
+	/**
+	 * 被包装的原始类
+	 */
 	private final ThreadPoolTaskExecutor delegate;
 
+	/**
+	 * Bean名称
+	 */
 	private final String beanName;
 
+	/**
+	 * 跟踪器
+	 */
 	private Tracer tracer;
 
+	/**
+	 * Span命名器
+	 */
 	private SpanNamer spanNamer;
 
 	public LazyTraceThreadPoolTaskExecutor(BeanFactory beanFactory, ThreadPoolTaskExecutor delegate) {
@@ -74,56 +91,63 @@ public class LazyTraceThreadPoolTaskExecutor extends ThreadPoolTaskExecutor {
 	}
 
 	/**
-	 * Wraps the Executor in a trace instance.
-	 * @param beanFactory bean factory
-	 * @param delegate delegate to wrap
-	 * @param beanName bean name
+	 * 将原始的ThreadPoolTaskExecutor保存到缓存中，并生成其对应的包装类{@link LazyTraceThreadPoolTaskExecutor}
+	 *
+	 * @param beanFactory 能够提供{@link Tracer}和{@link SpanNamer}的Bean工厂
+	 * @param delegate    delegate to wrap
+	 * @param beanName    bean name
+	 *
 	 * @return traced instance
 	 */
-	public static LazyTraceThreadPoolTaskExecutor wrap(BeanFactory beanFactory,
-			@NonNull ThreadPoolTaskExecutor delegate, String beanName) {
-		return CACHE.computeIfAbsent(delegate,
-				e -> new LazyTraceThreadPoolTaskExecutor(beanFactory, delegate, beanName));
+	public static LazyTraceThreadPoolTaskExecutor wrap(BeanFactory beanFactory, @NonNull ThreadPoolTaskExecutor delegate, String beanName) {
+		return CACHE.computeIfAbsent(delegate, e -> new LazyTraceThreadPoolTaskExecutor(beanFactory, delegate, beanName));
 	}
 
 	/**
-	 * Wraps the Executor in a trace instance.
-	 * @param beanFactory bean factory
-	 * @param delegate delegate to wrap
+	 * 将原始的ThreadPoolTaskExecutor保存到缓存中，并生成其对应的包装类{@link LazyTraceThreadPoolTaskExecutor}
+	 *
+	 * @param beanFactory 能够提供{@link Tracer}和{@link SpanNamer}的Bean工厂
+	 * @param delegate    delegate to wrap
+	 *
 	 * @return traced instance
 	 */
-	public static LazyTraceThreadPoolTaskExecutor wrap(BeanFactory beanFactory,
-			@NonNull ThreadPoolTaskExecutor delegate) {
+	public static LazyTraceThreadPoolTaskExecutor wrap(BeanFactory beanFactory, @NonNull ThreadPoolTaskExecutor delegate) {
 		return CACHE.computeIfAbsent(delegate, e -> new LazyTraceThreadPoolTaskExecutor(beanFactory, delegate, null));
 	}
 
 	@Override
 	public void execute(Runnable task) {
+		// 对Runnable进行包装，确保执行时生成Span
 		this.delegate.execute(wrap(task));
 	}
 
 	@Override
 	public void execute(Runnable task, long startTimeout) {
+		// 对Runnable进行包装，确保执行时生成Span
 		this.delegate.execute(wrap(task), startTimeout);
 	}
 
 	@Override
 	public Future<?> submit(Runnable task) {
+		// 对Runnable进行包装，确保执行时生成Span
 		return this.delegate.submit(wrap(task));
 	}
 
 	@Override
 	public <T> Future<T> submit(Callable<T> task) {
+		// 对Callable进行包装，确保执行时生成Span
 		return this.delegate.submit(wrap(task));
 	}
 
 	@Override
 	public ListenableFuture<?> submitListenable(Runnable task) {
+		// 对Runnable进行包装，确保执行时生成Span
 		return this.delegate.submitListenable(wrap(task));
 	}
 
 	@Override
 	public <T> ListenableFuture<T> submitListenable(Callable<T> task) {
+		// 对Callable进行包装，确保执行时生成Span
 		return this.delegate.submitListenable(wrap(task));
 	}
 
@@ -207,23 +231,28 @@ public class LazyTraceThreadPoolTaskExecutor extends ThreadPoolTaskExecutor {
 
 	@Override
 	public Thread newThread(Runnable runnable) {
+		// 对Runnable进行包装，确保执行时生成Span
 		return this.delegate.newThread(wrap(runnable));
 	}
 
 	private Runnable wrap(Runnable runnable) {
+		// 如果是TraceRunnable，则无需包装
 		if (runnable instanceof TraceRunnable) {
 			return runnable;
 		}
-		return ContextUtil.isContextUnusable(this.beanFactory) ? runnable
-				: new TraceRunnable(tracer(), spanNamer(), runnable, this.beanName);
+		// 如果Spring应用上下文尚未启动，则不进行包装，否则使用TraceRunnable进行包装
+		// 直接执行不会产生Span，通过TraceRunnable来执行会生成Span
+		return ContextUtil.isContextUnusable(this.beanFactory) ? runnable : new TraceRunnable(tracer(), spanNamer(), runnable, this.beanName);
 	}
 
 	private <V> Callable<V> wrap(Callable<V> callable) {
+		// 如果是TraceCallable，则无需包装
 		if (callable instanceof TraceCallable) {
 			return callable;
 		}
-		return ContextUtil.isContextUnusable(this.beanFactory) ? callable
-				: new TraceCallable<>(tracer(), spanNamer(), callable, this.beanName);
+		// 如果Spring应用上下文尚未启动，则不进行包装，否则使用TraceCallable进行包装
+		// 直接执行不会产生Span，通过TraceCallable来执行会生成Span
+		return ContextUtil.isContextUnusable(this.beanFactory) ? callable : new TraceCallable<>(tracer(), spanNamer(), callable, this.beanName);
 	}
 
 	@Override
@@ -321,6 +350,9 @@ public class LazyTraceThreadPoolTaskExecutor extends ThreadPoolTaskExecutor {
 		this.delegate.setTaskDecorator(taskDecorator);
 	}
 
+	/**
+	 * @return 返回跟踪器，如果不存在则从{@link BeanFactory#getBean(Class)}获取
+	 */
 	private Tracer tracer() {
 		if (this.tracer == null) {
 			this.tracer = this.beanFactory.getBean(Tracer.class);
@@ -328,12 +360,18 @@ public class LazyTraceThreadPoolTaskExecutor extends ThreadPoolTaskExecutor {
 		return this.tracer;
 	}
 
+	/**
+	 * 需要注意的时候，即使不存在SpanNamer这个Bean，会返回{@link DefaultSpanNamer}作为兜底
+	 *
+	 * @return 返回Span名称生成器，如果不存在则从{@link BeanFactory#getBean(Class)}获取，如果BeanFactory中不存在，则返回{@link DefaultSpanNamer}
+	 *
+	 * @see TraceableExecutorService#spanNamer()
+	 */
 	private SpanNamer spanNamer() {
 		if (this.spanNamer == null) {
 			try {
 				this.spanNamer = this.beanFactory.getBean(SpanNamer.class);
-			}
-			catch (NoSuchBeanDefinitionException e) {
+			} catch (NoSuchBeanDefinitionException e) {
 				log.warn("SpanNamer bean not found - will provide a manually created instance");
 				return new DefaultSpanNamer();
 			}

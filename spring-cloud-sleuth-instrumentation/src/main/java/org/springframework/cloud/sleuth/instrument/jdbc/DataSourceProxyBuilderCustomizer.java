@@ -37,7 +37,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.lang.Nullable;
 
 /**
- * Configurer for {@link ProxyDataSourceBuilder} based on the application context.
+ * 基于应用程序上下文的{@link ProxyDataSourceBuilder}的配置器
  *
  * @author Arthur Gavlyukovskiy
  * @since 3.1.0

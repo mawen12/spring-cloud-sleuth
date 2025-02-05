@@ -24,7 +24,7 @@ import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
 import org.springframework.cloud.sleuth.Tracer;
 
 /**
- * Aspect around {@link CircuitBreaker} creation.
+ * 围绕{@link CircuitBreaker}创建的切面，用于创建{@link TraceCircuitBreaker}
  *
  * @author Marcin Grzejszczak
  * @since 3.0.0
@@ -41,6 +41,7 @@ public class TraceCircuitBreakerFactoryAspect {
 	@Around("execution(public * org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory.create(..))")
 	public Object wrapFactory(ProceedingJoinPoint pjp) throws Throwable {
 		CircuitBreaker circuitBreaker = (CircuitBreaker) pjp.proceed();
+		// 将CircuitBreaker包装为TraceCircuitBreaker
 		return new TraceCircuitBreaker(circuitBreaker, this.tracer);
 	}
 

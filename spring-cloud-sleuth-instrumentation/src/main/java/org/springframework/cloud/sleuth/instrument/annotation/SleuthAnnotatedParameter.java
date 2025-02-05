@@ -19,18 +19,26 @@ package org.springframework.cloud.sleuth.instrument.annotation;
 import org.springframework.cloud.sleuth.annotation.SpanTag;
 
 /**
- * A container class that holds information about the parameter of the annotated method
- * argument.
+ * 保留具有注解的方法参数信息
  *
  * @author Christian Schwerdtfeger
  * @since 1.2.0
  */
 class SleuthAnnotatedParameter {
 
+	/**
+	 * 参数索引
+	 */
 	final int parameterIndex;
 
+	/**
+	 * {@link SpanTag}注解
+	 */
 	final SpanTag annotation;
 
+	/**
+	 * 参数值
+	 */
 	final Object argument;
 
 	SleuthAnnotatedParameter(int parameterIndex, SpanTag annotation, Object argument) {

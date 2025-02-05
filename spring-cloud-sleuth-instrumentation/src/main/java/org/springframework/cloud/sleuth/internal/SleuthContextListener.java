@@ -33,14 +33,21 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.SmartApplicationListener;
 
 /**
- * Internal tool used by Sleuth. Do not use.
+ * Sleuth内部使用的工具。请勿使用。
+ *
+ * <p>用于监听Spring上下文的启动状态
  *
  * @author Marcin Grzejszczak
  * @since 2.2.5
  */
 public class SleuthContextListener implements SmartApplicationListener {
 
-	static final Map<Integer, SleuthContextListener> CACHE = new ConcurrentHashMap<>();
+	/**
+	 * 保存了原始的Bean工厂哈希值与Sleuth上下文监听器
+	 *
+	 * <p>一个Bean工厂对应一个Sleuth上下文监听器
+	 */
+	static final Map<Integer/* Bean工厂的哈希值 */, SleuthContextListener/* Sleuth上下文监听器 */> CACHE = new ConcurrentHashMap<>();
 
 	private static final Log log = LogFactory.getLog(SleuthContextListener.class);
 
@@ -59,8 +66,8 @@ public class SleuthContextListener implements SmartApplicationListener {
 	}
 
 	/**
-	 * Returns an instance of the {@link SleuthContextListener} that might have already
-	 * been initialized.
+	 * 从缓存中读取{@link SleuthContextListener}，如果没有则创建新的实例并返回
+	 *
 	 * @param beanFactory bean factory
 	 * @return instance of {@link SleuthContextListener}
 	 */
@@ -74,8 +81,8 @@ public class SleuthContextListener implements SmartApplicationListener {
 
 	@Override
 	public boolean supportsEventType(Class<? extends ApplicationEvent> eventType) {
-		return ContextClosedEvent.class.isAssignableFrom(eventType)
-				|| ContextRefreshedEvent.class.isAssignableFrom(eventType);
+		// 仅支持上下文关闭和刷新事件
+		return ContextClosedEvent.class.isAssignableFrom(eventType) || ContextRefreshedEvent.class.isAssignableFrom(eventType);
 	}
 
 	@Override
@@ -85,23 +92,32 @@ public class SleuthContextListener implements SmartApplicationListener {
 				log.trace("Context refreshed or closed [" + event + "]");
 			}
 			ApplicationContextEvent contextEvent = (ApplicationContextEvent) event;
+			// 获取应用上下文
 			ApplicationContext context = contextEvent.getApplicationContext();
+			// 转换为Bean工厂
 			BeanFactory beanFactory = context;
+
 			if (context instanceof ConfigurableApplicationContext) {
 				beanFactory = ((ConfigurableApplicationContext) context).getBeanFactory();
 			}
+			// 获取监听器
 			SleuthContextListener listener = CACHE.getOrDefault(beanFactory.hashCode(), this);
+			// 更新刷新状态
 			listener.refreshed.compareAndSet(false, event instanceof ContextRefreshedEvent);
+			// 更新关闭状态
 			listener.closed.compareAndSet(false, event instanceof ContextClosedEvent);
+			// 放入缓存
 			CACHE.put(beanFactory.hashCode(), listener);
 		}
 	}
 
 	/**
-	 * Verifies if context is unusable.
-	 * @return true when Spring Context has NOT yet been started
+	 * 验证上下文是否未使用
+	 *
+	 * @return true 当Spring上下文尚未启动
 	 */
 	public boolean isUnusable() {
+		// 未刷新或已关闭
 		return !this.refreshed.get() || this.closed.get();
 	}
 

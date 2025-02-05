@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.sleuth.instrument.async;
 
+import java.util.Collection;
 import java.util.concurrent.Callable;
 
 import org.springframework.cloud.sleuth.Span;
@@ -23,8 +24,12 @@ import org.springframework.cloud.sleuth.SpanNamer;
 import org.springframework.cloud.sleuth.Tracer;
 
 /**
- * Callable that passes Span between threads. The Span name is taken either from the
- * passed value or from the {@link SpanNamer} interface.
+ * 在线程间传递Span的Callable。Span名称取自传递值或{@link SpanNamer}接口。
+ *
+ * <p>负责对原始Callable进行增强，在其执行周围生成Span
+ * <p>该类不应该被用户使用，因为Sleuth不会直接执行该类的列表
+ *
+ * @see TraceableExecutorService#wrapCallableCollection(Collection)
  *
  * @param <V> - return type from callable
  * @author Spencer Gibb
@@ -35,17 +40,28 @@ import org.springframework.cloud.sleuth.Tracer;
 public class TraceCallable<V> implements Callable<V> {
 
 	/**
-	 * Since we don't know the exact operation name we provide a default name for the
-	 * Span.
+	 * 由于我们不知道确切的操作名称，因此为Span提供一个默认的名称。
 	 */
 	private static final String DEFAULT_SPAN_NAME = "async";
 
+	/**
+	 * 跟踪器
+	 */
 	private final Tracer tracer;
 
+	/**
+	 * 原始的Callable
+	 */
 	private final Callable<V> delegate;
 
+	/**
+	 * 父级Span
+	 */
 	private final Span parent;
 
+	/**
+	 * Span名称
+	 */
 	private final String spanName;
 
 	public TraceCallable(Tracer tracer, SpanNamer spanNamer, Callable<V> delegate) {
@@ -56,21 +72,25 @@ public class TraceCallable<V> implements Callable<V> {
 		this.tracer = tracer;
 		this.delegate = delegate;
 		this.parent = tracer.currentSpan();
+		// 未指定Span名称时，使用生成器来生成
 		this.spanName = name != null ? name : spanNamer.name(delegate, DEFAULT_SPAN_NAME);
 	}
 
 	@Override
 	public V call() throws Exception {
-		Span childSpan = SleuthAsyncSpan.ASYNC_CALLABLE_SPAN.wrap(this.tracer.nextSpan(this.parent))
-				.name(this.spanName);
+		// 以当前Span作为父级构造一个子级Span
+		Span childSpan = SleuthAsyncSpan.ASYNC_CALLABLE_SPAN.wrap(this.tracer.nextSpan(this.parent)).name(this.spanName);
+		// 启动Span，并设置为当前Span
 		try (Tracer.SpanInScope ws = this.tracer.withSpan(childSpan.start())) {
+			// 运行原始的Callable
 			return this.delegate.call();
-		}
-		catch (Exception | Error ex) {
+		} catch (Exception | Error ex) {
+			// 捕获异常
 			childSpan.error(ex);
 			throw ex;
 		}
 		finally {
+			// 结束范围
 			childSpan.end();
 		}
 	}

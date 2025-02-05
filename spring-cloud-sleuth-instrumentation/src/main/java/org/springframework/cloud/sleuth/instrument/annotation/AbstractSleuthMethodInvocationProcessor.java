@@ -31,7 +31,7 @@ import org.springframework.cloud.sleuth.annotation.NewSpanParser;
 import org.springframework.cloud.sleuth.annotation.SleuthMethodInvocationProcessor;
 
 /**
- * Sleuth annotation processor.
+ * Spring Cloud Sleuth注解处理器
  *
  * @author Marcin Grzejszczak
  */
@@ -39,29 +39,49 @@ abstract class AbstractSleuthMethodInvocationProcessor implements SleuthMethodIn
 
 	private static final Log logger = LogFactory.getLog(AbstractSleuthMethodInvocationProcessor.class);
 
+	/**
+	 * Bean工厂
+	 */
 	BeanFactory beanFactory;
 
+	/**
+	 * {@link org.springframework.cloud.sleuth.annotation.NewSpan}解析器
+	 */
 	private NewSpanParser newSpanParser;
 
+	/**
+	 * 跟踪器
+	 */
 	private Tracer tracer;
 
+	/**
+	 * 当前跟踪上下文
+	 */
 	private CurrentTraceContext currentTraceContext;
 
+	/**
+	 * {@link org.springframework.cloud.sleuth.annotation.SpanTag}处理器
+	 */
 	private SpanTagAnnotationHandler spanTagAnnotationHandler;
 
 	void before(MethodInvocation invocation, Span span, String log, boolean hasLog) {
 		if (hasLog) {
+			// 写入事件信息
 			logEvent(span, log + ".before");
 		}
+		// 将SpanTag的信息添加到Span
 		spanTagAnnotationHandler().addAnnotatedParameters(invocation);
+		// 将标签信息{@code class}和{@code method}添加到Span
 		addTags(invocation, span);
 	}
 
 	void after(Span span, boolean isNewSpan, String log, boolean hasLog) {
 		if (hasLog) {
+			// 写入事件信息
 			logEvent(span, log + ".after");
 		}
 		if (isNewSpan) {
+			// 关闭Span
 			span.end();
 		}
 	}
@@ -71,17 +91,35 @@ abstract class AbstractSleuthMethodInvocationProcessor implements SleuthMethodIn
 			logger.debug("Exception occurred while trying to continue the pointcut", e);
 		}
 		if (hasLog) {
+			// 写入事件
 			logEvent(span, log + ".afterFailure");
 		}
+		// 写入异常信息
 		span.error(e);
 	}
 
+	/**
+	 * 向Span添加标签信息
+	 * <ul>
+	 *     <li>{@code class}</li>
+	 *     <li>{@code method}</li>
+	 * </ul>
+	 *
+	 * @param invocation
+	 * @param span
+	 */
 	void addTags(MethodInvocation invocation, Span span) {
 		SleuthAnnotationSpan.ANNOTATION_NEW_OR_CONTINUE_SPAN.wrap(span)
 				.tag(SleuthAnnotationSpan.Tags.CLASS, invocation.getThis().getClass().getSimpleName())
 				.tag(SleuthAnnotationSpan.Tags.METHOD, invocation.getMethod().getName());
 	}
 
+	/**
+	 * 向Span添加事件
+	 *
+	 * @param span
+	 * @param name
+	 */
 	void logEvent(Span span, String name) {
 		if (span == null) {
 			logger.warn("You were trying to continue a span which was null. Please "
@@ -92,6 +130,10 @@ abstract class AbstractSleuthMethodInvocationProcessor implements SleuthMethodIn
 		SleuthAnnotationSpan.ANNOTATION_NEW_OR_CONTINUE_SPAN.wrap(span).event(name);
 	}
 
+	/**
+	 * @param continueSpan
+	 * @return 获取{@link ContinueSpan#log()}信息
+	 */
 	String log(ContinueSpan continueSpan) {
 		if (continueSpan != null) {
 			return continueSpan.log();
@@ -99,6 +141,9 @@ abstract class AbstractSleuthMethodInvocationProcessor implements SleuthMethodIn
 		return "";
 	}
 
+	/**
+	 * @return 返回跟踪器，如果不存在则从{@link BeanFactory#getBean(Class)}获取
+	 */
 	Tracer tracer() {
 		if (this.tracer == null) {
 			this.tracer = this.beanFactory.getBean(Tracer.class);
@@ -106,6 +151,9 @@ abstract class AbstractSleuthMethodInvocationProcessor implements SleuthMethodIn
 		return this.tracer;
 	}
 
+	/**
+	 * @return 返回当前跟踪上下文，如果不存在则从{@link BeanFactory#getBean(Class)}获取
+	 */
 	CurrentTraceContext currentTraceContext() {
 		if (this.currentTraceContext == null) {
 			this.currentTraceContext = this.beanFactory.getBean(CurrentTraceContext.class);
@@ -113,6 +161,9 @@ abstract class AbstractSleuthMethodInvocationProcessor implements SleuthMethodIn
 		return this.currentTraceContext;
 	}
 
+	/**
+	 * @return 返回@NewSpan解析器，如果不存在则从{@link BeanFactory#getBean(Class)}获取
+	 */
 	NewSpanParser newSpanParser() {
 		if (this.newSpanParser == null) {
 			this.newSpanParser = this.beanFactory.getBean(NewSpanParser.class);
@@ -120,6 +171,9 @@ abstract class AbstractSleuthMethodInvocationProcessor implements SleuthMethodIn
 		return this.newSpanParser;
 	}
 
+	/**
+	 * @return 返回@SpanTag处理器，如果不存在则从{@link BeanFactory#getBean(Class)}获取
+	 */
 	SpanTagAnnotationHandler spanTagAnnotationHandler() {
 		if (this.spanTagAnnotationHandler == null) {
 			this.spanTagAnnotationHandler = new SpanTagAnnotationHandler(this.beanFactory);

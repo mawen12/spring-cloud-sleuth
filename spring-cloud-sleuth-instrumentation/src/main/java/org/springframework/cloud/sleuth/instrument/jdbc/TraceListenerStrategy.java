@@ -41,29 +41,25 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 /**
- * Trace listener strategy makes the best effort at tracking all open JDBC resources (and
- * therefore spans/scopes) because of two main reasons: 1. JDBC allows to not close child
- * resources, in which case closing the parent will close everything -
- * {@link Connection#close()} closes all underlying {@link Statement}s and
- * {@link Statement#close()} close all underlying {@link ResultSet}s. Ideally this should
- * not happen, but practically some applications (and some frameworks) rely on this
- * mechanism. 2. While most JDBC drivers don't support concurrency, multiple connections
- * might be opened at the same time in the same thread. JDBC treats those connections as
- * completely separate resources, and we cannot rely on the order of closing those
- * connections.
+ * 跟踪监听器策略会尽最大努力跟踪所有打开的JDBC资源（包含Span和Scope），主要有两个原因：
+ * <ul>
+ *     <li>
+ *         JDBC允许不关闭子资源，在这种情况下，关闭父资源将关闭所有内容。{@link Connection#close()}将关闭所有底层{@link Statement}，
+ *         并且{@link Statement#close()}将关闭所有底层{@link ResultSet}。理想情况下，这不应该发生，但实际上某些应用程序（和某些框架）依赖于此机制
+ *     </li>
+ *     <li>
+ *         虽然大多数JDBC驱动程序不支持并发，但可能会在同一个线程中同时打开多个连接。JDBC将这些连接视为完全独立的资源，我们不能依赖关闭这些连接的顺序，
+ *     </li>
+ * </ul>
  *
- * Tracking covers such cases as long as resources are closed in the same thread they were
- * opened.
- *
- * Partially taken from
- * https://github.com/openzipkin/brave/blob/v5.6.4/instrumentation/p6spy/src/main/java/brave/p6spy/TracingJdbcEventListener.java
- * and
- * https://github.com/gavlyukovskiy/spring-boot-data-source-decorator/blob/master/datasource-decorator-spring-boot-autoconfigure/src/main/java/com/github/gavlyukovskiy/cloud/sleuth/TracingListenerStrategy.java.
+ * <p>只要资源在打开的同一线程中关闭，跟踪就会涵盖此类情况。
  *
  * @param <CON> connection type
  * @param <STMT> statement
  * @param <RS> result set
  * @author Arthur Gavlyukovskiy
+ * @see <a href="https://github.com/openzipkin/brave/blob/v5.6.4/instrumentation/p6spy/src/main/java/brave/p6spy/TracingJdbcEventListener.java">TracingJdbcEventListener</a>
+ * @see <a href="https://github.com/gavlyukovskiy/spring-boot-data-source-decorator/blob/master/datasource-decorator-spring-boot-autoconfigure/src/main/java/com/github/gavlyukovskiy/cloud/sleuth/TracingListenerStrategy.java">TracingListenerStrategy</a>
  */
 class TraceListenerStrategy<CON, STMT, RS> {
 
@@ -79,51 +75,74 @@ class TraceListenerStrategy<CON, STMT, RS> {
 
 	private final ThreadLocal<ConnectionInfo> currentConnection = new ThreadLocal<>();
 
+	/**
+	 * 跟踪类型
+	 */
 	private final List<TraceType> traceTypes;
 
 	private final List<TraceListenerStrategySpanCustomizer<? super CommonDataSource>> customizers;
 
+	/**
+	 * Bean工厂
+	 */
 	private BeanFactory beanFactory;
 
+	/**
+	 * 跟踪器
+	 */
 	private Tracer tracer;
 
-	TraceListenerStrategy(Tracer tracer, List<TraceType> traceTypes,
-			List<TraceListenerStrategySpanCustomizer<? super CommonDataSource>> customizers) {
+	TraceListenerStrategy(Tracer tracer, List<TraceType> traceTypes, List<TraceListenerStrategySpanCustomizer<? super CommonDataSource>> customizers) {
 		this.traceTypes = traceTypes;
 		this.customizers = customizers;
 		this.tracer = tracer;
 	}
 
-	TraceListenerStrategy(BeanFactory beanFactory, List<TraceType> traceTypes,
-			List<TraceListenerStrategySpanCustomizer<? super CommonDataSource>> customizers) {
+	TraceListenerStrategy(BeanFactory beanFactory, List<TraceType> traceTypes, List<TraceListenerStrategySpanCustomizer<? super CommonDataSource>> customizers) {
 		this.traceTypes = traceTypes;
 		this.customizers = customizers;
 		this.beanFactory = beanFactory;
 	}
 
+	/**
+	 * 获取连接之前执行
+	 *
+	 * @param connectionKey
+	 * @param dataSource
+	 * @param dataSourceName
+	 */
 	void beforeGetConnection(CON connectionKey, @Nullable CommonDataSource dataSource, String dataSourceName) {
 		if (log.isTraceEnabled()) {
-			log.trace("Before get connection key [" + connectionKey + "] - current span is ["
-					+ getTracer().currentSpan() + "]");
+			log.trace("Before get connection key [" + connectionKey + "] - current span is [" + getTracer().currentSpan() + "]");
 		}
 		SpanAndScope spanAndScope = null;
+		// 检查是否需要跟踪Connection
 		if (this.traceTypes.contains(TraceType.CONNECTION)) {
+			// 创建SpanBuilder，其名称为connection
 			AssertingSpanBuilder connectionSpanBuilder = AssertingSpanBuilder
 					.of(SleuthJdbcSpan.JDBC_CONNECTION_SPAN, getTracer().spanBuilder())
 					.name(SleuthJdbcSpan.JDBC_CONNECTION_SPAN.getName());
+			// 设置远程服务名称为数据源名称
 			connectionSpanBuilder.remoteServiceName(dataSourceName);
+			// 设置Span类型为Client
 			connectionSpanBuilder.kind(Span.Kind.CLIENT);
+			// 对满足条件的数据源进行定制化处理，设置其Span标签信息，有数据源驱动、连接池名称
 			this.customizers.stream().filter(customizer -> customizer.isApplicable(dataSource))
 					.forEach(customizer -> customizer.customizeConnectionSpan(dataSource, connectionSpanBuilder));
+			// 启动Span
 			Span connectionSpan = connectionSpanBuilder.start();
+			// 开启范围
 			Tracer.SpanInScope scope = isCurrent(null) ? getTracer().withSpan(connectionSpan) : null;
+			// 构建Span和Scope
 			spanAndScope = new SpanAndScope(connectionSpan, scope);
 			if (log.isTraceEnabled()) {
 				log.trace("Started client span before connection [" + connectionSpan + "] - current span is ["
 						+ getTracer().currentSpan() + "]");
 			}
 		}
+		// 创建连接信息
 		ConnectionInfo connectionInfo = new ConnectionInfo(spanAndScope);
+		//
 		connectionInfo.remoteServiceName = dataSourceName;
 		this.openConnections.put(connectionKey, connectionInfo);
 		if (isCurrent(null)) {
@@ -493,8 +512,14 @@ class TraceListenerStrategy<CON, STMT, RS> {
 		return this.tracer;
 	}
 
+	/**
+	 * 连接信息
+	 */
 	private final class ConnectionInfo {
 
+		/**
+		 * Span
+		 */
 		final SpanAndScope span;
 
 		final Map<STMT, StatementInfo> nestedStatements = new ConcurrentHashMap<>();
@@ -513,6 +538,9 @@ class TraceListenerStrategy<CON, STMT, RS> {
 
 	}
 
+	/**
+	 * 语句信息
+	 */
 	private final class StatementInfo {
 
 		final SpanAndScope span;

@@ -33,7 +33,7 @@ import org.springframework.core.Ordered;
 import org.springframework.util.StringUtils;
 
 /**
- * Listener to represent each connection and sql query as a span.
+ * 监听器将每个连接和SQL查询表示为一个Span。
  *
  * @author Arthur Gavlyukovskiy
  * @since 3.1.0
@@ -45,10 +45,19 @@ public class TraceJdbcEventListener extends SimpleJdbcEventListener implements O
 	 */
 	public static final int ORDER = Ordered.HIGHEST_PRECEDENCE + 10;
 
+	/**
+	 * 提供查找数据源名称的能力
+	 */
 	private final DataSourceNameResolver dataSourceNameResolver;
 
+	/**
+	 * 根据监听器策略
+	 */
 	private final TraceListenerStrategy<ConnectionInformation, StatementInformation, ResultSetInformation> strategy;
 
+	/**
+	 * 是否包含参数值
+	 */
 	private final boolean includeParameterValues;
 
 	public TraceJdbcEventListener(Tracer tracer, DataSourceNameResolver dataSourceNameResolver,

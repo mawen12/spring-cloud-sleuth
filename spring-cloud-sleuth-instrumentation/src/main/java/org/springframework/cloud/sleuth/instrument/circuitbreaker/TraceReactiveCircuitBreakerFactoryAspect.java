@@ -24,6 +24,9 @@ import org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreaker;
 import org.springframework.cloud.sleuth.CurrentTraceContext;
 import org.springframework.cloud.sleuth.Tracer;
 
+/**
+ * 围绕{@link ReactiveCircuitBreaker}创建的切面，用于创建{@link TraceReactiveCircuitBreaker}
+ */
 @Aspect
 public class TraceReactiveCircuitBreakerFactoryAspect {
 
@@ -39,6 +42,7 @@ public class TraceReactiveCircuitBreakerFactoryAspect {
 	@Around("execution(public * org.springframework.cloud.client.circuitbreaker.ReactiveCircuitBreakerFactory.create(..))")
 	public Object wrapFactory(ProceedingJoinPoint pjp) throws Throwable {
 		ReactiveCircuitBreaker circuitBreaker = (ReactiveCircuitBreaker) pjp.proceed();
+		// 将ReactiveCircuitBreaker包装为TraceReactiveCircuitBreaker
 		return new TraceReactiveCircuitBreaker(circuitBreaker, this.tracer, this.currentTraceContext);
 	}
 

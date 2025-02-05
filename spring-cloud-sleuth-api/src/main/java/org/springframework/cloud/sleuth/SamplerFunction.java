@@ -19,10 +19,9 @@ package org.springframework.cloud.sleuth;
 import org.springframework.lang.Nullable;
 
 /**
- * This API was heavily influenced by Brave. Parts of its documentation were taken
- * directly from Brave.
+ * 此API深受Brave影响，其部分文档直接取自Brave。
  *
- * Decides whether to start a new trace based on request properties such as an HTTP path.
+ * 决定基于请求属性例如HTTP路径来确定是否启动一个新的{@link Tracer}
  *
  * @param <T> type of the input, for example a request or method
  * @author OpenZipkin Brave Authors
@@ -32,7 +31,8 @@ import org.springframework.lang.Nullable;
 public interface SamplerFunction<T> {
 
 	/**
-	 * Returns an overriding sampling decision for a new trace.
+	 * 为新的{@link Tracer}返回覆盖后的采样策略
+	 *
 	 * @param arg parameter to evaluate for a sampling decision. {@code null} input
 	 * results in a {@code null} result
 	 * @return {@code true} to sample a new trace or {@code false} to deny. {@code null}
@@ -42,7 +42,8 @@ public interface SamplerFunction<T> {
 	Boolean trySample(@Nullable T arg);
 
 	/**
-	 * Always deferring {@link SamplerFunction}.
+	 * 总是推迟采样
+	 *
 	 * @param <T> type of the input, for example a request or method
 	 * @return decision deferring sampler function
 	 */
@@ -51,7 +52,8 @@ public interface SamplerFunction<T> {
 	}
 
 	/**
-	 * Never sampling {@link SamplerFunction}.
+	 * 永远不采样
+	 *
 	 * @param <T> type of the input, for example a request or method
 	 * @return never sampling sampler function
 	 */
@@ -60,7 +62,8 @@ public interface SamplerFunction<T> {
 	}
 
 	/**
-	 * Always sampling {@link SamplerFunction}.
+	 * 总是采样
+	 *
 	 * @param <T> type of the input, for example a request or method
 	 * @return always sampling sampler function
 	 */
@@ -74,7 +77,7 @@ public interface SamplerFunction<T> {
 	enum Constants implements SamplerFunction<Object> {
 
 		/**
-		 * Always defers sampling decision.
+		 * 总是推迟采样的决策
 		 */
 		DEFER_DECISION {
 			@Override
@@ -89,7 +92,7 @@ public interface SamplerFunction<T> {
 		},
 
 		/**
-		 * Will never sample this trace.
+		 * 永远不采样
 		 */
 		NEVER_SAMPLE {
 			@Override
@@ -104,7 +107,7 @@ public interface SamplerFunction<T> {
 		},
 
 		/**
-		 * Will always sample this trace.
+		 * 总是采样
 		 */
 		ALWAYS_SAMPLE {
 			@Override

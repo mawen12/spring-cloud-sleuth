@@ -19,7 +19,7 @@ package org.springframework.cloud.sleuth;
 import java.util.ArrayDeque;
 
 /**
- * Represents a {@link Span} stored in thread local.
+ * 代表存储在Thread本地的{@link Span}
  *
  * @author Marcin Grzejszczak
  * @since 3.1.0

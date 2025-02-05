@@ -17,7 +17,7 @@
 package org.springframework.cloud.sleuth.annotation;
 
 /**
- * Resolves the tag value for the given parameter and the provided expression.
+ * 从给定注解和所提供的表达式上解析标签值
  *
  * @author Marcin Grzejszczak
  * @since 1.2.0
@@ -25,10 +25,11 @@ package org.springframework.cloud.sleuth.annotation;
 public interface TagValueExpressionResolver {
 
 	/**
-	 * Returns the tag value for the given parameter and the provided expression.
-	 * @param expression - the expression coming from {@link SpanTag#expression()}
-	 * @param parameter - parameter annotated with {@link SpanTag}
-	 * @return the value of the tag
+	 * 返回给定注解和所提供的表达式上解析的标签值
+	 *
+	 * @param expression - {@link SpanTag#expression()}
+	 * @param parameter - 带有{@link SpanTag}的参数
+	 * @return 返回解析后的标签值
 	 */
 	String resolve(String expression, Object parameter);
 

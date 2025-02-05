@@ -17,7 +17,7 @@
 package org.springframework.cloud.sleuth.annotation;
 
 /**
- * Does nothing.
+ * NOP，返回空
  *
  * @author Marcin Grzejszczak
  * @since 1.2.0

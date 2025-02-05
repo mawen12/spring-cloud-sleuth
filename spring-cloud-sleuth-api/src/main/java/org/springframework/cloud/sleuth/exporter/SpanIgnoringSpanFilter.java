@@ -29,7 +29,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.util.StringUtils;
 
 /**
- * {@link SpanFilter} that ignores spans via names.
+ * 通过名称忽略Span的{@link SpanFilter}实现。
  *
  * @author Marcin Grzejszczak
  * @since 3.0.0
@@ -38,10 +38,19 @@ public class SpanIgnoringSpanFilter implements SpanFilter {
 
 	private static final Log log = LogFactory.getLog(SpanIgnoringSpanFilter.class);
 
+	/**
+	 * Span要跳过的名称模式列表
+	 */
 	private final List<String> spanNamePatternsToSkip;
 
+	/**
+	 * 额外的Span要忽略的名称模式列表
+	 */
 	private final List<String> additionalSpanNamePatternsToIgnore;
 
+	/**
+	 * 静态缓存
+	 */
 	static final Map<String, Pattern> cache = new ConcurrentHashMap<>();
 
 	public SpanIgnoringSpanFilter(List<String> spanNamePatternsToSkip,
@@ -51,10 +60,17 @@ public class SpanIgnoringSpanFilter implements SpanFilter {
 	}
 
 	private List<Pattern> spanNamesToIgnore() {
-		return spanNames().stream().map(regex -> cache.computeIfAbsent(regex, Pattern::compile))
+		return spanNames()
+				.stream()
+				.map(regex -> cache.computeIfAbsent(regex, Pattern::compile))
 				.collect(Collectors.toList());
 	}
 
+	/**
+	 * 整合{@link #spanNamePatternsToSkip}和{@link #additionalSpanNamePatternsToIgnore}
+	 *
+	 * @return
+	 */
 	private List<String> spanNames() {
 		List<String> spanNamesToIgnore = new ArrayList<>(this.spanNamePatternsToSkip);
 		spanNamesToIgnore.addAll(this.additionalSpanNamePatternsToIgnore);
@@ -63,12 +79,15 @@ public class SpanIgnoringSpanFilter implements SpanFilter {
 
 	@Override
 	public boolean isExportable(FinishedSpan span) {
+		// 获取Span要跳过的名称模式列表
 		List<Pattern> spanNamesToIgnore = spanNamesToIgnore();
+		// 获取Span的名称
 		String name = span.getName();
 		if (StringUtils.hasText(name) && spanNamesToIgnore.stream().anyMatch(p -> p.matcher(name).matches())) {
 			if (log.isDebugEnabled()) {
 				log.debug("Will ignore a span with name [" + name + "]");
 			}
+			// 如果Span的名称存在，并与任意要跳过的名称模式列表匹配，则代表不需要上报
 			return false;
 		}
 		return true;

@@ -25,14 +25,17 @@ import java.lang.annotation.Target;
 import org.springframework.core.annotation.AliasFor;
 
 /**
- * There are 3 different ways to add tags to a span. All of them are controlled by the
- * annotation values. Precedence is:
+ * 用于向Span添加标签。
  *
- * try with the {@link TagValueResolver} bean if the value of the bean wasn't set, try to
- * evaluate a SPEL expression if there’s no SPEL expression just return a
- * {@code toString()} value of the parameter
+ * <p>有三种向Span添加标签的方法。均被注解值所控制。
+ * <ul>
+ *     <li>第一步：如果设置了{@link #resolver()}，则使用该类来处理；否则执行第二步</li>
+ *     <li>第二步：如果设置了{@link #expression()}，则使用{@link TagValueExpressionResolver}来处理；否则执行第三步</li>
+ *     <li>第三步：获取{@link #toString()}作为参数值</li>
+ * </ul>
  *
  * @author Christian Schwerdtfeger
+ * @see org.springframework.cloud.sleuth.instrument.annotation.SpanTagAnnotationHandler#resolveTagValue(SpanTag, Object)
  * @since 1.2.0
  */
 @Retention(RetentionPolicy.RUNTIME)
@@ -41,25 +44,24 @@ import org.springframework.core.annotation.AliasFor;
 public @interface SpanTag {
 
 	/**
-	 * @return - The name of the key of the tag which should be created.
+	 * @return - 被创建的标签键的名称
 	 */
 	@AliasFor("key")
 	String value() default "";
 
 	/**
-	 * @return - The name of the key of the tag which should be created.
+	 * @return - 被创建的标签键的名称
 	 */
 	@AliasFor("value")
 	String key() default "";
 
 	/**
-	 * @return - Execute this SPEL expression to calculate the tag value. Will be analyzed
-	 * if no value of the {@link SpanTag#resolver()} was set.
+	 * @return - 执行SPEL表达式来计算标签值，如果没有设置{@link #resolver()}的值，将会进行解析
 	 */
 	String expression() default "";
 
 	/**
-	 * @return - Use this bean to resolve the tag value. Has the highest precedence.
+	 * @return - 使用此Bean来解析标签值，具有最高的优先级
 	 */
 	Class<? extends TagValueResolver> resolver() default NoOpTagValueResolver.class;
 

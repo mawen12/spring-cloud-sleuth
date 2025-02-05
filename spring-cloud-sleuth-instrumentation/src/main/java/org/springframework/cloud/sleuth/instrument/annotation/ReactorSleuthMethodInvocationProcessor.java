@@ -41,7 +41,7 @@ import org.springframework.cloud.sleuth.instrument.reactor.TraceContextPropagato
 import org.springframework.util.StringUtils;
 
 /**
- * Method Invocation Processor for Reactor.
+ * 用于支持Reactor的方法调用处理器
  *
  * @author Marcin Grzejszczak
  * @since 2.1.0
@@ -53,17 +53,20 @@ public class ReactorSleuthMethodInvocationProcessor extends AbstractSleuthMethod
 	@Override
 	public Object process(MethodInvocation invocation, NewSpan newSpan, ContinueSpan continueSpan) throws Throwable {
 		Method method = invocation.getMethod();
+		// 检查是否为Reactor返回类型
 		if (isReactorReturnType(method.getReturnType())) {
+			// Reactor方法采用ReactorSleuthMethodInvocationProcessor处理
 			return proceedUnderReactorSpan(invocation, newSpan, continueSpan);
 		}
 		else {
+			// 非Reactor的方法采用NonReactorSleuthMethodInvocationProcessor处理
 			return nonReactorSleuthMethodInvocationProcessor().process(invocation, newSpan, continueSpan);
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	private Object proceedUnderReactorSpan(MethodInvocation invocation, NewSpan newSpan, ContinueSpan continueSpan)
-			throws Throwable {
+	private Object proceedUnderReactorSpan(MethodInvocation invocation, NewSpan newSpan, ContinueSpan continueSpan) throws Throwable {
+		// 获取当前Span
 		Span spanPrevious = tracer().currentSpan();
 		// in case of @ContinueSpan and no span in tracer we start new span and should
 		// close it on completion
@@ -75,13 +78,17 @@ public class ReactorSleuthMethodInvocationProcessor extends AbstractSleuthMethod
 			span = spanPrevious;
 		}
 
+		// 读取@ContinueSpan#log信息
 		String log = log(continueSpan);
+		// 调用目标方法
 		Publisher<?> publisher = (Publisher) invocation.proceed();
 
 		if (publisher instanceof Mono) {
+			// 处理Mono返回类型
 			return new MonoSpan((Mono<Object>) publisher, this, newSpan, span, invocation, log);
 		}
 		else if (publisher instanceof Flux) {
+			// 处理Flux返回类型
 			return new FluxSpan((Flux<Object>) publisher, this, newSpan, span, invocation, log);
 		}
 		else {
@@ -89,6 +96,12 @@ public class ReactorSleuthMethodInvocationProcessor extends AbstractSleuthMethod
 		}
 	}
 
+	/**
+	 * Reactor返回类型为{@link Flux}和{@link Mono}
+	 *
+	 * @param returnType
+	 * @return
+	 */
 	private boolean isReactorReturnType(Class<?> returnType) {
 		return Flux.class.equals(returnType) || Mono.class.equals(returnType);
 	}
@@ -148,6 +161,9 @@ public class ReactorSleuthMethodInvocationProcessor extends AbstractSleuthMethod
 
 	}
 
+	/**
+	 * 处理返回值为{@link Mono}类型
+	 */
 	private static final class MonoSpan extends MonoOperator<Object, Object> implements TraceContextPropagator {
 
 		final Span span;
@@ -162,8 +178,7 @@ public class ReactorSleuthMethodInvocationProcessor extends AbstractSleuthMethod
 
 		final NewSpan newSpan;
 
-		MonoSpan(Mono<Object> source, ReactorSleuthMethodInvocationProcessor processor, NewSpan newSpan,
-				@Nullable Span span, MethodInvocation invocation, String log) {
+		MonoSpan(Mono<Object> source, ReactorSleuthMethodInvocationProcessor processor, NewSpan newSpan, @Nullable Span span, MethodInvocation invocation, String log) {
 			super(source);
 			this.processor = processor;
 			this.newSpan = newSpan;
@@ -176,18 +191,23 @@ public class ReactorSleuthMethodInvocationProcessor extends AbstractSleuthMethod
 		@Override
 		public void subscribe(CoreSubscriber<? super Object> actual) {
 			Span span;
+			// 获取跟踪器
 			Tracer tracer = this.processor.tracer();
 			if (this.span == null) {
+				// 对于空的Span，创建新的Span
 				span = SleuthAnnotationSpan.ANNOTATION_NEW_OR_CONTINUE_SPAN.wrap(tracer.nextSpan());
+				// 解析并设置Span的名称
 				this.processor.newSpanParser().parse(this.invocation, this.newSpan, span);
+				// 开始Span
 				span.start();
 			}
 			else {
 				span = this.span;
 			}
+
 			try (CurrentTraceContext.Scope ws = this.processor.currentTraceContext().maybeScope(span.context())) {
-				this.source.subscribe(new SpanSubscriber(actual, this.processor, this.invocation, this.span == null,
-						span, this.log, this.hasLog));
+				// 订阅
+				this.source.subscribe(new SpanSubscriber(actual, this.processor, this.invocation, this.span == null, span, this.log, this.hasLog));
 			}
 		}
 

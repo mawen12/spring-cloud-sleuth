@@ -19,18 +19,29 @@ package org.springframework.cloud.sleuth.instrument.async;
 import org.springframework.cloud.sleuth.docs.DocumentedSpan;
 import org.springframework.cloud.sleuth.docs.TagKey;
 
+/**
+ * 代表Spring Cloud Sleuth 异步的Span
+ *
+ * <p>支持{@link org.springframework.scheduling.annotation.Async}注解
+ * <p>支持{@link java.util.concurrent.Executor}
+ */
 enum SleuthAsyncSpan implements DocumentedSpan {
 
 	/**
-	 * Span that wraps a @Async annotation. Either continues an existing one or creates a
-	 * new one if there was no present one.
+	 * 包装{@link org.springframework.scheduling.annotation.Async}注解的Span，可以继续使用现有的注解，如果不存在则创建一个新的注解
 	 */
 	ASYNC_ANNOTATION_SPAN {
+		/**
+		 * @return 名称要求：任意字符串
+		 */
 		@Override
 		public String getName() {
 			return "%s";
 		}
 
+		/**
+		 * @return 只允许存在名为{@code class}和{@code method}的键
+		 */
 		@Override
 		public TagKey[] getTagKeys() {
 			return Tags.values();
@@ -39,9 +50,12 @@ enum SleuthAsyncSpan implements DocumentedSpan {
 	},
 
 	/**
-	 * Span created whenever a Runnable needs to be instrumented.
+	 * 每当Runnable需要被检测时，就会创建Span
 	 */
 	ASYNC_RUNNABLE_SPAN {
+		/**
+		 * @return 名称要求：任意字符串
+		 */
 		@Override
 		public String getName() {
 			return "%s";
@@ -50,9 +64,12 @@ enum SleuthAsyncSpan implements DocumentedSpan {
 	},
 
 	/**
-	 * Span created whenever a Callable needs to be instrumented.
+	 * 每当Callable需要被检测时，就会创建Span
 	 */
 	ASYNC_CALLABLE_SPAN {
+		/**
+		 * @return 名称要求：任意字符串
+		 */
 		@Override
 		public String getName() {
 			return "%s";
@@ -63,7 +80,7 @@ enum SleuthAsyncSpan implements DocumentedSpan {
 	enum Tags implements TagKey {
 
 		/**
-		 * Class name where a method got annotated with @Async.
+		 * 使用{@link org.springframework.scheduling.annotation.Async}注解的方法的类名
 		 */
 		CLASS {
 			@Override
@@ -73,7 +90,7 @@ enum SleuthAsyncSpan implements DocumentedSpan {
 		},
 
 		/**
-		 * Method name that got annotated with @Async.
+		 * 使用{@link org.springframework.scheduling.annotation.Async}注解的方法名
 		 */
 		METHOD {
 			@Override

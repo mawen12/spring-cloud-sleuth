@@ -51,8 +51,7 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.util.concurrent.ListenableFuture;
 
 /**
- * Trace representation of {@link ThreadPoolTaskScheduler}. Should be used only as last
- * resort, when any other approaches fail.
+ * 用于支持跟踪的{@link ThreadPoolTaskScheduler}的实现。当其他方法都失败时，应仅将其作为最后的手段使用。
  *
  * @author Marcin Grzejszczak
  * @since 2.0.4
@@ -62,57 +61,89 @@ class LazyTraceThreadPoolTaskScheduler extends ThreadPoolTaskScheduler {
 
 	private static final Log log = LogFactory.getLog(LazyTraceThreadPoolTaskScheduler.class);
 
-	private static final Map<ThreadPoolTaskScheduler, LazyTraceThreadPoolTaskScheduler> CACHE = new ConcurrentHashMap<>();
+	private static final Map<ThreadPoolTaskScheduler/* 原始的ThreadPoolTaskScheduler */, LazyTraceThreadPoolTaskScheduler/* 被代理的对象 */> CACHE = new ConcurrentHashMap<>();
 
+	/**
+	 * Bean工厂
+	 */
 	private final BeanFactory beanFactory;
 
+	/**
+	 * 被包装的原始类
+	 */
 	private final ThreadPoolTaskScheduler delegate;
 
+	/**
+	 * Bean名称
+	 */
 	private final String beanName;
 
+	/**
+	 * {@link ThreadPoolTaskScheduler#initializeExecutor(ThreadFactory, RejectedExecutionHandler)}方法引用
+	 */
 	private final Method initializeExecutor;
 
+	/**
+	 * {@link ThreadPoolTaskScheduler#createExecutor(int, ThreadFactory, RejectedExecutionHandler)}方法引用
+	 */
 	private final Method createExecutor;
 
+	/**
+	 * {@link ThreadPoolTaskScheduler#cancelRemainingTask(Runnable)}方法引用
+	 */
 	private final Method cancelRemainingTask;
 
+	/**
+	 * {@link ThreadPoolTaskScheduler#nextThreadName()}方法引用
+	 */
 	private final Method nextThreadName;
 
+	/**
+	 * {@link CustomizableThreadCreator#getDefaultThreadNamePrefix()}方法引用
+	 */
 	private final Method getDefaultThreadNamePrefix;
 
+	/**
+	 * 跟踪器
+	 */
 	private Tracer tracing;
 
+	/**
+	 * Span命名器
+	 */
 	private SpanNamer spanNamer;
 
 	LazyTraceThreadPoolTaskScheduler(BeanFactory beanFactory, ThreadPoolTaskScheduler delegate, String beanName) {
 		this.beanFactory = beanFactory;
 		this.delegate = delegate;
 		this.beanName = beanName;
+		// 获取initializeExecutor方法
 		this.initializeExecutor = ReflectionUtils.findMethod(ThreadPoolTaskScheduler.class, "initializeExecutor", null);
 		makeAccessibleIfNotNull(this.initializeExecutor);
+		// 获取createExecutor方法
 		this.createExecutor = ReflectionUtils.findMethod(ThreadPoolTaskScheduler.class, "createExecutor", null);
 		makeAccessibleIfNotNull(this.createExecutor);
-		this.cancelRemainingTask = ReflectionUtils.findMethod(ThreadPoolTaskScheduler.class, "cancelRemainingTask",
-				null);
+		// 获取cancelRemainingTask方法
+		this.cancelRemainingTask = ReflectionUtils.findMethod(ThreadPoolTaskScheduler.class, "cancelRemainingTask", null);
 		makeAccessibleIfNotNull(this.cancelRemainingTask);
+		// 获取nextThreadName方法
 		this.nextThreadName = ReflectionUtils.findMethod(ThreadPoolTaskScheduler.class, "nextThreadName", null);
 		makeAccessibleIfNotNull(this.nextThreadName);
-		this.getDefaultThreadNamePrefix = ReflectionUtils.findMethod(CustomizableThreadCreator.class,
-				"getDefaultThreadNamePrefix", null);
+		// 获取getDefaultThreadNamePrefix方法
+		this.getDefaultThreadNamePrefix = ReflectionUtils.findMethod(CustomizableThreadCreator.class, "getDefaultThreadNamePrefix", null);
 		makeAccessibleIfNotNull(this.getDefaultThreadNamePrefix);
 	}
 
 	/**
-	 * Wraps the Executor in a trace instance.
-	 * @param beanFactory bean factory
+	 * 将原始的ThreadPoolTaskScheduler保存到缓存中，并生成其对应的包装类{@link LazyTraceThreadPoolTaskScheduler}
+	 *
+	 * @param beanFactory 能够提供{@link Tracer}和{@link SpanNamer}的Bean工厂
 	 * @param delegate delegate to wrap
 	 * @param beanName bean name
 	 * @return traced instance
 	 */
-	static LazyTraceThreadPoolTaskScheduler wrap(BeanFactory beanFactory, @NonNull ThreadPoolTaskScheduler delegate,
-			String beanName) {
-		return CACHE.computeIfAbsent(delegate,
-				e -> new LazyTraceThreadPoolTaskScheduler(beanFactory, delegate, beanName));
+	static LazyTraceThreadPoolTaskScheduler wrap(BeanFactory beanFactory, @NonNull ThreadPoolTaskScheduler delegate, String beanName) {
+		return CACHE.computeIfAbsent(delegate, e -> new LazyTraceThreadPoolTaskScheduler(beanFactory, delegate, beanName));
 	}
 
 	private void makeAccessibleIfNotNull(Method method) {
@@ -121,6 +152,16 @@ class LazyTraceThreadPoolTaskScheduler extends ThreadPoolTaskScheduler {
 		}
 	}
 
+	/**
+	 * 将{@link Runnable}转换为{@link TraceRunnable}
+	 *
+	 * <p>如果Spring应用上下文未启动，则无法转换
+	 *
+	 * <p>直接执行不会产生Span，通过TraceRunnable来执行会生成Span
+	 *
+	 * @param delegate
+	 * @return
+	 */
 	private Runnable traceRunnableWhenContextReady(Runnable delegate) {
 		if (ContextUtil.isContextUnusable(this.beanFactory)) {
 			return delegate;
@@ -131,6 +172,17 @@ class LazyTraceThreadPoolTaskScheduler extends ThreadPoolTaskScheduler {
 		return new TraceRunnable(tracing(), spanNamer(), delegate, this.beanName);
 	}
 
+	/**
+	 * 将{@link Callable}转换为{@link TraceCallable}
+	 *
+	 * <p>如果Spring应用上下文未启动，则无法转换
+	 *
+	 * <p>直接执行不会产生Span，通过TraceCallable来执行会生成Span
+	 *
+	 * @param delegate
+	 * @return
+	 * @param <V>
+	 */
 	private <V> Callable<V> traceCallableWhenContextReady(Callable<V> delegate) {
 		if (ContextUtil.isContextUnusable(this.beanFactory)) {
 			return delegate;
@@ -157,14 +209,13 @@ class LazyTraceThreadPoolTaskScheduler extends ThreadPoolTaskScheduler {
 	}
 
 	@Override
-	public ExecutorService initializeExecutor(ThreadFactory threadFactory,
-			RejectedExecutionHandler rejectedExecutionHandler) {
-		ExecutorService executorService = (ExecutorService) ReflectionUtils.invokeMethod(this.initializeExecutor,
-				this.delegate, traceThreadFactory(threadFactory),
-				traceRejectedExecutionHandler(rejectedExecutionHandler));
+	public ExecutorService initializeExecutor(ThreadFactory threadFactory, RejectedExecutionHandler rejectedExecutionHandler) {
+		// 调用initializeExecutor生成ExecutorService
+		ExecutorService executorService = (ExecutorService) ReflectionUtils.invokeMethod(this.initializeExecutor, this.delegate, traceThreadFactory(threadFactory), traceRejectedExecutionHandler(rejectedExecutionHandler));
 		if (executorService instanceof TraceableScheduledExecutorService) {
 			return executorService;
 		}
+		// 将原始的ExecutorService包装为TraceableExecutorService
 		return TraceableExecutorService.wrap(this.beanFactory, executorService, this.beanName);
 	}
 
@@ -172,42 +223,51 @@ class LazyTraceThreadPoolTaskScheduler extends ThreadPoolTaskScheduler {
 		return new RejectedExecutionHandler() {
 			@Override
 			public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+				// 将Runnable包装为TraceRunnable
 				rejectedExecutionHandler.rejectedExecution(traceRunnableWhenContextReady(r), executor);
 			}
 		};
 	}
 
 	private ThreadFactory traceThreadFactory(ThreadFactory threadFactory) {
+		// 将Runnable包装为TraceRunnable
 		return r -> threadFactory.newThread(traceRunnableWhenContextReady(r));
 	}
 
 	@Override
-	public ScheduledExecutorService createExecutor(int poolSize, ThreadFactory threadFactory,
-			RejectedExecutionHandler rejectedExecutionHandler) {
-		ScheduledExecutorService executorService = (ScheduledExecutorService) ReflectionUtils.invokeMethod(
-				this.createExecutor, this.delegate, poolSize, traceThreadFactory(threadFactory),
-				traceRejectedExecutionHandler(rejectedExecutionHandler));
+	public ScheduledExecutorService createExecutor(int poolSize, ThreadFactory threadFactory, RejectedExecutionHandler rejectedExecutionHandler) {
+		// 调用createExecutor生成ScheduledExecutorService
+		ScheduledExecutorService executorService = (ScheduledExecutorService) ReflectionUtils.invokeMethod(this.createExecutor, this.delegate, poolSize, traceThreadFactory(threadFactory), traceRejectedExecutionHandler(rejectedExecutionHandler));
 		if (executorService instanceof TraceableScheduledExecutorService) {
 			return executorService;
 		}
+		// 将原始的ScheduledExecutorService包装为TraceableScheduledExecutorService
 		return TraceableScheduledExecutorService.wrap(this.beanFactory, executorService, this.beanName);
 	}
 
+	/**
+	 * @return 返回包装过后的TraceableScheduledExecutorService
+	 * @throws IllegalStateException
+	 */
 	@Override
 	public ScheduledExecutorService getScheduledExecutor() throws IllegalStateException {
 		ScheduledExecutorService executor = this.delegate.getScheduledExecutor();
-		return executor instanceof TraceableScheduledExecutorService ? executor
-				: TraceableScheduledExecutorService.wrap(this.beanFactory, executor, this.beanName);
+		return executor instanceof TraceableScheduledExecutorService ? executor : TraceableScheduledExecutorService.wrap(this.beanFactory, executor, this.beanName);
 	}
 
+	/**
+	 * @return 返回包装过后的LazyTraceScheduledThreadPoolExecutor
+	 * @throws IllegalStateException
+	 */
 	@Override
 	public ScheduledThreadPoolExecutor getScheduledThreadPoolExecutor() throws IllegalStateException {
+		// 获取原始的ScheduledThreadPoolExecutor
 		ScheduledThreadPoolExecutor executor = this.delegate.getScheduledThreadPoolExecutor();
 		if (executor instanceof LazyTraceScheduledThreadPoolExecutor) {
 			return executor;
 		}
-		return LazyTraceScheduledThreadPoolExecutor.wrap(executor.getCorePoolSize(), executor.getThreadFactory(),
-				executor.getRejectedExecutionHandler(), this.beanFactory, executor, this.beanName);
+		// 将原始的ScheduledThreadPoolExecutor包装为LazyTraceScheduledThreadPoolExecutor
+		return LazyTraceScheduledThreadPoolExecutor.wrap(executor.getCorePoolSize(), executor.getThreadFactory(), executor.getRejectedExecutionHandler(), this.beanFactory, executor, this.beanName);
 	}
 
 	@Override
@@ -227,36 +287,43 @@ class LazyTraceThreadPoolTaskScheduler extends ThreadPoolTaskScheduler {
 
 	@Override
 	public void execute(Runnable task) {
+		// 将Runnable包装为TraceRunnable
 		this.delegate.execute(traceRunnableWhenContextReady(task));
 	}
 
 	@Override
 	public void execute(Runnable task, long startTimeout) {
+		// 将Runnable包装为TraceRunnable
 		this.delegate.execute(traceRunnableWhenContextReady(task), startTimeout);
 	}
 
 	@Override
 	public Future<?> submit(Runnable task) {
+		// 将Runnable包装为TraceRunnable
 		return this.delegate.submit(traceRunnableWhenContextReady(task));
 	}
 
 	@Override
 	public <T> Future<T> submit(Callable<T> task) {
+		// 将Callable包装为TraceCallable
 		return this.delegate.submit(traceCallableWhenContextReady(task));
 	}
 
 	@Override
 	public ListenableFuture<?> submitListenable(Runnable task) {
+		// 将Runnable包装为TraceRunnable
 		return this.delegate.submitListenable(traceRunnableWhenContextReady(task));
 	}
 
 	@Override
 	public <T> ListenableFuture<T> submitListenable(Callable<T> task) {
+		// 将Callable包装为TraceCallable
 		return this.delegate.submitListenable(traceCallableWhenContextReady(task));
 	}
 
 	@Override
 	public void cancelRemainingTask(Runnable task) {
+		// 将Runnable包装为TraceRunnable
 		ReflectionUtils.invokeMethod(this.cancelRemainingTask, this.delegate, traceRunnableWhenContextReady(task));
 	}
 
@@ -268,31 +335,37 @@ class LazyTraceThreadPoolTaskScheduler extends ThreadPoolTaskScheduler {
 	@Override
 	@Nullable
 	public ScheduledFuture<?> schedule(Runnable task, Trigger trigger) {
+		// 将Runnable包装为TraceRunnable
 		return this.delegate.schedule(traceRunnableWhenContextReady(task), trigger);
 	}
 
 	@Override
 	public ScheduledFuture<?> schedule(Runnable task, Date startTime) {
+		// 将Runnable包装为TraceRunnable
 		return this.delegate.schedule(traceRunnableWhenContextReady(task), startTime);
 	}
 
 	@Override
 	public ScheduledFuture<?> scheduleAtFixedRate(Runnable task, Date startTime, long period) {
+		// 将Runnable包装为TraceRunnable
 		return this.delegate.scheduleAtFixedRate(traceRunnableWhenContextReady(task), startTime, period);
 	}
 
 	@Override
 	public ScheduledFuture<?> scheduleAtFixedRate(Runnable task, long period) {
+		// 将Runnable包装为TraceRunnable
 		return this.delegate.scheduleAtFixedRate(traceRunnableWhenContextReady(task), period);
 	}
 
 	@Override
 	public ScheduledFuture<?> scheduleWithFixedDelay(Runnable task, Date startTime, long delay) {
+		// 将Runnable包装为TraceRunnable
 		return this.delegate.scheduleWithFixedDelay(traceRunnableWhenContextReady(task), startTime, delay);
 	}
 
 	@Override
 	public ScheduledFuture<?> scheduleWithFixedDelay(Runnable task, long delay) {
+		// 将Runnable包装为TraceRunnable
 		return this.delegate.scheduleWithFixedDelay(traceRunnableWhenContextReady(task), delay);
 	}
 
@@ -348,6 +421,7 @@ class LazyTraceThreadPoolTaskScheduler extends ThreadPoolTaskScheduler {
 
 	@Override
 	public Thread newThread(Runnable runnable) {
+		// 将Runnable包装为TraceRunnable
 		return this.delegate.newThread(traceRunnableWhenContextReady(runnable));
 	}
 
@@ -394,6 +468,7 @@ class LazyTraceThreadPoolTaskScheduler extends ThreadPoolTaskScheduler {
 
 	@Override
 	public Thread createThread(Runnable runnable) {
+		// 将Runnable包装为TraceRunnable
 		return this.delegate.createThread(traceRunnableWhenContextReady(runnable));
 	}
 
@@ -412,29 +487,37 @@ class LazyTraceThreadPoolTaskScheduler extends ThreadPoolTaskScheduler {
 
 	@Override
 	public ScheduledFuture<?> schedule(Runnable task, Instant startTime) {
+		// 将Runnable包装为TraceRunnable
 		return this.delegate.schedule(traceRunnableWhenContextReady(task), startTime);
 	}
 
 	@Override
 	public ScheduledFuture<?> scheduleAtFixedRate(Runnable task, Instant startTime, Duration period) {
+		// 将Runnable包装为TraceRunnable
 		return this.delegate.scheduleAtFixedRate(traceRunnableWhenContextReady(task), startTime, period);
 	}
 
 	@Override
 	public ScheduledFuture<?> scheduleAtFixedRate(Runnable task, Duration period) {
+		// 将Runnable包装为TraceRunnable
 		return this.delegate.scheduleAtFixedRate(traceRunnableWhenContextReady(task), period);
 	}
 
 	@Override
 	public ScheduledFuture<?> scheduleWithFixedDelay(Runnable task, Instant startTime, Duration delay) {
+		// 将Runnable包装为TraceRunnable
 		return this.delegate.scheduleWithFixedDelay(traceRunnableWhenContextReady(task), startTime, delay);
 	}
 
 	@Override
 	public ScheduledFuture<?> scheduleWithFixedDelay(Runnable task, Duration delay) {
+		// 将Runnable包装为TraceRunnable
 		return this.delegate.scheduleWithFixedDelay(traceRunnableWhenContextReady(task), delay);
 	}
 
+	/**
+	 * @return 返回跟踪器，如果不存在则从{@link BeanFactory#getBean(Class)}获取
+	 */
 	private Tracer tracing() {
 		if (this.tracing == null) {
 			this.tracing = this.beanFactory.getBean(Tracer.class);
@@ -442,6 +525,11 @@ class LazyTraceThreadPoolTaskScheduler extends ThreadPoolTaskScheduler {
 		return this.tracing;
 	}
 
+	/**
+	 * 需要注意的时候，即使不存在SpanNamer这个Bean，会返回{@link DefaultSpanNamer}作为兜底
+	 *
+	 * @return 返回Span名称生成器，如果不存在则从{@link BeanFactory#getBean(Class)}获取，如果BeanFactory中不存在，则返回{@link DefaultSpanNamer}
+	 */
 	private SpanNamer spanNamer() {
 		if (this.spanNamer == null) {
 			try {

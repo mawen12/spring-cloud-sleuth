@@ -31,13 +31,16 @@ import org.springframework.cloud.sleuth.TraceContext;
 import org.springframework.cloud.sleuth.Tracer;
 
 /**
- * Brave implementation of a {@link Tracer}.
+ * 基于Brave实现的{@link Tracer}
  *
  * @author Marcin Grzejszczak
  * @since 3.0.0
  */
 public class BraveTracer implements Tracer {
 
+	/**
+	 * Brave的Tracer
+	 */
 	private final brave.Tracer tracer;
 
 	private final BraveBaggageManager braveBaggageManager;

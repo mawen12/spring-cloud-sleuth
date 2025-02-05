@@ -17,7 +17,7 @@
 package org.springframework.cloud.sleuth.exporter;
 
 /**
- * An interface that allows to process spans after they got finished.
+ * 允许在Span完成后处理Span的接口
  *
  * @author Marcin Grzejszczak
  * @since 3.1.0
@@ -25,7 +25,8 @@ package org.springframework.cloud.sleuth.exporter;
 public interface SpanReporter {
 
 	/**
-	 * Reports the finished span.
+	 * 上报完成的Span
+	 *
 	 * @param span a span that was ended and is ready to be reported.
 	 */
 	void report(FinishedSpan span);

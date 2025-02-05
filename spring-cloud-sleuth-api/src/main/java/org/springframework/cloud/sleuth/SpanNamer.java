@@ -17,9 +17,7 @@
 package org.springframework.cloud.sleuth;
 
 /**
- * Describes how for a given object a span should be named. In the vast majority of cases
- * a name should be provided explicitly. In case of instrumentation where the name has to
- * be resolved at runtime this interface will provide the name of the span.
+ * 描述如何为给定对象命名Span。在绝大多数情况下应明确提供名称，在必须在运行时解析名称的检测中，此接口将提供Span的名称
  *
  * @author Marcin Grzejszczak
  * @since 1.0.0
@@ -27,7 +25,8 @@ package org.springframework.cloud.sleuth;
 public interface SpanNamer {
 
 	/**
-	 * Retrieves the span name for the given object.
+	 * 获取给定对象的Span名称
+	 *
 	 * @param object - object for which span name should be picked
 	 * @param defaultValue - the default valued to be returned if span name can't be
 	 * calculated

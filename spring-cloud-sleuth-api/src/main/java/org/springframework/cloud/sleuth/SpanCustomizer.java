@@ -17,7 +17,7 @@
 package org.springframework.cloud.sleuth;
 
 /**
- * Allows to customize the current span in scope.
+ * 用于自定义范围内的Span
  *
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
@@ -26,14 +26,16 @@ package org.springframework.cloud.sleuth;
 public interface SpanCustomizer {
 
 	/**
-	 * Sets a name on a span.
+	 * 设置Span的名称
+	 *
 	 * @param name name to set on a span
 	 * @return this, for chaining
 	 */
 	SpanCustomizer name(String name);
 
 	/**
-	 * Sets a tag on a span.
+	 * 设置Span的标签
+	 *
 	 * @param key tag key
 	 * @param value tag value
 	 * @return this, for chaining
@@ -41,7 +43,8 @@ public interface SpanCustomizer {
 	SpanCustomizer tag(String key, String value);
 
 	/**
-	 * Sets an event on a span.
+	 * 设置Span的事件名称
+	 *
 	 * @param value event name
 	 * @return this, for chaining
 	 */

@@ -19,7 +19,13 @@ package org.springframework.cloud.sleuth.annotation;
 import org.aopalliance.intercept.MethodInvocation;
 
 /**
- * Contract for processing Sleuth annotations.
+ * 处理Sleuth注解的合约
+ *
+ * <p>支持以下注解
+ * <ul>
+ *     <li>{@link SpanTag}</li>
+ *     <li>{@link ContinueSpan}</li>
+ * </ul>
  *
  * @author Marcin Grzejszczak
  * @since 2.1.0
@@ -27,12 +33,13 @@ import org.aopalliance.intercept.MethodInvocation;
 public interface SleuthMethodInvocationProcessor {
 
 	/**
-	 * Executes a given Sleuth annotated method.
-	 * @param invocation method invocation
-	 * @param newSpan annotation
-	 * @param continueSpan annotation
-	 * @return executed method result
-	 * @throws Throwable exception upon running a method
+	 * 执行给定的包含Sleuth注解的方法
+	 *
+	 * @param invocation 方法调用
+	 * @param newSpan {@link NewSpan}注解
+	 * @param continueSpan {@link ContinueSpan}注解
+	 * @return 方法执行结果
+	 * @throws Throwable 运行方法时出现的异常
 	 */
 	Object process(MethodInvocation invocation, NewSpan newSpan, ContinueSpan continueSpan) throws Throwable;
 

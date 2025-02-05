@@ -22,7 +22,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 /**
- * Container object for {@link Span} and its corresponding {@link Tracer.SpanInScope}.
+ * {@link Span}及其对应的{@link Tracer.SpanInScope}的容器对象。
+ *
+ * <p>用于在关闭{@link SpanAndScope}时，关闭{@link Tracer.SpanInScope}和结束{@link Span}
  *
  * @author Marcin Grzejszczak
  * @author Arthur Gavlyukovskiy
@@ -31,9 +33,14 @@ import org.apache.commons.logging.LogFactory;
 public class SpanAndScope implements Closeable {
 
 	private static final Log log = LogFactory.getLog(SpanAndScope.class);
-
+	/**
+	 * Sleuth的Span
+	 */
 	private final Span span;
 
+	/**
+	 * Span范围对象
+	 */
 	private final Tracer.SpanInScope scope;
 
 	public SpanAndScope(Span span, Tracer.SpanInScope scope) {
@@ -56,12 +63,15 @@ public class SpanAndScope implements Closeable {
 
 	@Override
 	public void close() {
+		// 记录关闭日志
 		if (log.isDebugEnabled()) {
 			log.debug("Closing span [" + this.span + "], scope is not null [" + (this.scope != null) + "]");
 		}
+		// 关闭范围
 		if (this.scope != null) {
 			this.scope.close();
 		}
+		// 结束Span
 		this.span.end();
 	}
 

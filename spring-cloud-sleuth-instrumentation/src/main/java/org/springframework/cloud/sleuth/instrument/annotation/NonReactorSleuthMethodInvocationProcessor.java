@@ -25,7 +25,7 @@ import org.springframework.cloud.sleuth.annotation.NewSpan;
 import org.springframework.util.StringUtils;
 
 /**
- * Method Invocation processor for non reactor apps.
+ * 用于支持非Reactor的方法调用处理器
  *
  * @author Marcin Grzejszczak
  * @since 2.1.0
@@ -37,28 +37,38 @@ public class NonReactorSleuthMethodInvocationProcessor extends AbstractSleuthMet
 		return proceedUnderSynchronousSpan(invocation, newSpan, continueSpan);
 	}
 
-	private Object proceedUnderSynchronousSpan(MethodInvocation invocation, NewSpan newSpan, ContinueSpan continueSpan)
-			throws Throwable {
+	private Object proceedUnderSynchronousSpan(MethodInvocation invocation, NewSpan newSpan, ContinueSpan continueSpan) throws Throwable {
+		// 获取当前Span
 		Span span = tracer().currentSpan();
 		// in case of @ContinueSpan and no span in tracer we start new span and should
 		// close it on completion
 		boolean startNewSpan = newSpan != null || span == null;
 		if (startNewSpan) {
+			// 存在@NewSpan或当前span为空，创建新的Span
 			span = SleuthAnnotationSpan.ANNOTATION_NEW_OR_CONTINUE_SPAN.wrap(tracer().nextSpan());
+			// 解析@NewSpan注解，并设置Span名称
 			newSpanParser().parse(invocation, newSpan, span);
+			// 开启Span
 			span.start();
 		}
+		// 读取@ContinueSpan#log信息
 		String log = log(continueSpan);
+		// 检查是否需要记录日志
 		boolean hasLog = StringUtils.hasText(log);
+		// 设置为当前Span，并返回范围
 		try (Tracer.SpanInScope scope = tracer().withSpan(span)) {
+			// 触发before事件
 			before(invocation, span, log, hasLog);
+			// 执行原始调用
 			return invocation.proceed();
 		}
 		catch (Exception ex) {
+			// 触发afterFailure事件
 			onFailure(span, log, hasLog, ex);
 			throw ex;
 		}
 		finally {
+			// 触发after事件
 			after(span, startNewSpan, log, hasLog);
 		}
 	}

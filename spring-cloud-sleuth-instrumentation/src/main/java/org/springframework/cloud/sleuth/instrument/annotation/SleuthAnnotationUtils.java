@@ -52,6 +52,13 @@ final class SleuthAnnotationUtils {
 		return !findAnnotatedParameters(method, args).isEmpty();
 	}
 
+	/**
+	 * 获取所有标注了{@link SpanTag}注解的参数
+	 *
+	 * @param method
+	 * @param args
+	 * @return
+	 */
 	static List<SleuthAnnotatedParameter> findAnnotatedParameters(Method method, Object[] args) {
 		Annotation[][] parameters = method.getParameterAnnotations();
 		List<SleuthAnnotatedParameter> result = new ArrayList<>();

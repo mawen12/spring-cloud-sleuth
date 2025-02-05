@@ -20,22 +20,38 @@ import org.springframework.cloud.sleuth.docs.DocumentedSpan;
 import org.springframework.cloud.sleuth.docs.EventValue;
 import org.springframework.cloud.sleuth.docs.TagKey;
 
+/**
+ * 代表Spring Cloud Sleuth注解的Span
+ *
+ * <p>支持{@link org.springframework.cloud.sleuth.annotation.NewSpan}
+ * <p>支持{@link org.springframework.cloud.sleuth.annotation.ContinueSpan}
+ *
+ */
 enum SleuthAnnotationSpan implements DocumentedSpan {
 
 	/**
-	 * Span that wraps a @NewSpan or @ContinueSpan annotations.
+	 * 包装{@link org.springframework.cloud.sleuth.annotation.NewSpan}和{@link org.springframework.cloud.sleuth.annotation.ContinueSpan}注解的Span
 	 */
 	ANNOTATION_NEW_OR_CONTINUE_SPAN {
+		/**
+		 * @return 名称要求：任意字符串
+		 */
 		@Override
 		public String getName() {
 			return "%s";
 		}
 
+		/**
+		 * @return 只允许存在名称{@code class}和{@code method}的键
+		 */
 		@Override
 		public TagKey[] getTagKeys() {
 			return Tags.values();
 		}
 
+		/**
+		 * @return 只存在{@code .before}，{@code .after}和{@code .afterFailure}事件
+		 */
 		@Override
 		public EventValue[] getEvents() {
 			return Events.values();
@@ -44,7 +60,7 @@ enum SleuthAnnotationSpan implements DocumentedSpan {
 	};
 
 	/**
-	 * Tags related to Sleuth annotations.
+	 * Spring Cloud Sleuth注解相关标签
 	 *
 	 * @author Marcin Grzejszczak
 	 * @since 3.0.3
@@ -52,7 +68,7 @@ enum SleuthAnnotationSpan implements DocumentedSpan {
 	enum Tags implements TagKey {
 
 		/**
-		 * Class name where a method got annotated with a Sleuth annotation.
+		 * 使用{@link org.springframework.cloud.sleuth.annotation.NewSpan}或{@link org.springframework.cloud.sleuth.annotation.ContinueSpan}注解的方法的类名
 		 */
 		CLASS {
 			@Override
@@ -62,7 +78,7 @@ enum SleuthAnnotationSpan implements DocumentedSpan {
 		},
 
 		/**
-		 * Method name that got annotated with Sleuth annotation.
+		 * 使用{@link org.springframework.cloud.sleuth.annotation.NewSpan}或{@link org.springframework.cloud.sleuth.annotation.ContinueSpan}注解的方法名
 		 */
 		METHOD {
 			@Override
@@ -76,7 +92,7 @@ enum SleuthAnnotationSpan implements DocumentedSpan {
 	enum Events implements EventValue {
 
 		/**
-		 * Annotated before executing a method annotated with @ContinueSpan or @NewSpan.
+		 * 在执行注解{@link org.springframework.cloud.sleuth.annotation.NewSpan}或{@link org.springframework.cloud.sleuth.annotation.ContinueSpan}之前进行的注解
 		 */
 		BEFORE {
 			@Override
@@ -86,7 +102,7 @@ enum SleuthAnnotationSpan implements DocumentedSpan {
 		},
 
 		/**
-		 * Annotated after executing a method annotated with @ContinueSpan or @NewSpan.
+		 * 在执行注解{@link org.springframework.cloud.sleuth.annotation.NewSpan}或{@link org.springframework.cloud.sleuth.annotation.ContinueSpan}之后进行的注解
 		 */
 		AFTER {
 			@Override
@@ -96,8 +112,7 @@ enum SleuthAnnotationSpan implements DocumentedSpan {
 		},
 
 		/**
-		 * Annotated after throwing an exception from a method annotated
-		 * with @ContinueSpan or @NewSpan.
+		 * 在执行注解{@link org.springframework.cloud.sleuth.annotation.NewSpan}或{@link org.springframework.cloud.sleuth.annotation.ContinueSpan}失败时进行的注解
 		 */
 		AFTER_FAILURE {
 			@Override

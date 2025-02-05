@@ -23,8 +23,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Tells Sleuth that all Sleuth related annotations should be applied to an existing span
- * instead of creating a new one.
+ * 告知Sleuth所有相关注解都会追加到已存在的Span上而非创建一个新的Span
  *
  * @author Marcin Grzejszczak
  * @since 1.2.0
@@ -35,9 +34,9 @@ import java.lang.annotation.Target;
 public @interface ContinueSpan {
 
 	/**
-	 * Log statement to be appended to the span.
-	 * @return - the value passed to the annotation will be used and the framework will
-	 * create two events with the {@code .start} and {@code .end} suffixes.
+	 * 要追加到Span的日志语句
+	 *
+	 * @return -传递给注解的值将被使用，并且框架将创建两个带有{@code .start}和{@code .end}后缀的事件
 	 */
 	String log() default "";
 

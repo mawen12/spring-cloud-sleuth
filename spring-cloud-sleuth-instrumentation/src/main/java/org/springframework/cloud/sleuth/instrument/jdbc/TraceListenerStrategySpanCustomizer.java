@@ -21,7 +21,7 @@ import javax.sql.CommonDataSource;
 import org.springframework.cloud.sleuth.Span;
 
 /**
- * Customizer for {@link TraceListenerStrategy} client span.
+ * 用于{@link TraceListenerStrategy}客户端Span的定制器
  *
  * @author Marcin Grzejszczak
  * @since 3.1.0
@@ -29,7 +29,8 @@ import org.springframework.cloud.sleuth.Span;
 public interface TraceListenerStrategySpanCustomizer<T extends CommonDataSource> {
 
 	/**
-	 * Customizes the client database span.
+	 * 定制客户端数据库Span
+	 *
 	 * @param dataSource data source for which we're building the span
 	 * @param spanBuilder span builder
 	 */
@@ -37,7 +38,7 @@ public interface TraceListenerStrategySpanCustomizer<T extends CommonDataSource>
 
 	/**
 	 * @param dataSource data source for which we're building the span
-	 * @return {@code true} when this customizer can be applied
+	 * @return {@code true} 可以被应用该定制器
 	 */
 	boolean isApplicable(CommonDataSource dataSource);
 

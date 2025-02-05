@@ -20,7 +20,7 @@ import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.TraceContext;
 
 /**
- * A {@link Span.Builder} that can perform assertions on itself.
+ * 可以对自身执行断言的{@link Span.Builder}
  *
  * @author Marcin Grzejszczak
  * @since 3.1.0
@@ -28,18 +28,20 @@ import org.springframework.cloud.sleuth.TraceContext;
 public interface AssertingSpanBuilder extends Span.Builder {
 
 	/**
-	 * @return a {@link DocumentedSpan} with span configuration
+	 * @return 包含Span配置的 {@link DocumentedSpan}
 	 */
 	DocumentedSpan getDocumentedSpan();
 
 	/**
-	 * @return wrapped {@link Span.Builder}
+	 * @return 底层委托的 {@link Span.Builder}
 	 */
 	Span.Builder getDelegate();
 
 	@Override
 	default AssertingSpanBuilder tag(String key, String value) {
+		// 校验key合法
 		DocumentedSpanAssertions.assertThatKeyIsValid(key, getDocumentedSpan());
+		// 设置到原始的Span上
 		getDelegate().tag(key, value);
 		return this;
 	}
@@ -51,14 +53,18 @@ public interface AssertingSpanBuilder extends Span.Builder {
 	 * @return this, for chaining
 	 */
 	default AssertingSpanBuilder tag(TagKey key, String value) {
+		// 校验key合法
 		DocumentedSpanAssertions.assertThatKeyIsValid(key, getDocumentedSpan());
+		// 设置到原始的Span上
 		getDelegate().tag(key.getKey(), value);
 		return this;
 	}
 
 	@Override
 	default AssertingSpanBuilder event(String value) {
+		// 校验事件合法
 		DocumentedSpanAssertions.assertThatEventIsValid(value, getDocumentedSpan());
+		// 设置到原始的Span上
 		getDelegate().event(value);
 		return this;
 	}
@@ -69,58 +75,71 @@ public interface AssertingSpanBuilder extends Span.Builder {
 	 * @return this, for chaining
 	 */
 	default AssertingSpanBuilder event(EventValue value) {
+		// 校验事件合法
 		DocumentedSpanAssertions.assertThatEventIsValid(value, getDocumentedSpan());
+		// 设置到原始的Span上
 		getDelegate().event(value.getValue());
 		return this;
 	}
 
 	@Override
 	default AssertingSpanBuilder name(String name) {
+		// 校验名称合法
 		DocumentedSpanAssertions.assertThatNameIsValid(name, getDocumentedSpan());
+		// 设置到原始的Span上
 		getDelegate().name(name);
 		return this;
 	}
 
 	@Override
 	default AssertingSpanBuilder error(Throwable throwable) {
+		// 设置异常信息
 		getDelegate().error(throwable);
 		return this;
 	}
 
 	@Override
 	default AssertingSpanBuilder remoteServiceName(String remoteServiceName) {
+		// 设置远程服务信息
 		getDelegate().remoteServiceName(remoteServiceName);
 		return this;
 	}
 
 	@Override
 	default Span.Builder remoteIpAndPort(String ip, int port) {
+		// 设置远程ip和端口
 		getDelegate().remoteIpAndPort(ip, port);
 		return this;
 	}
 
 	@Override
 	default AssertingSpanBuilder setParent(TraceContext context) {
+		// 设置父级
 		getDelegate().setParent(context);
 		return this;
 	}
 
 	@Override
 	default AssertingSpanBuilder setNoParent() {
+		// 清除父级
 		getDelegate().setNoParent();
 		return this;
 	}
 
 	@Override
 	default AssertingSpanBuilder kind(Span.Kind spanKind) {
+		// 设置类型
 		getDelegate().kind(spanKind);
 		return this;
 	}
 
 	@Override
 	default AssertingSpan start() {
+		// 启动Span
 		Span span = getDelegate().start();
+		// 获取可文档化的Span
 		DocumentedSpan documentedSpan = getDocumentedSpan();
+		// 返回可断言的Span
 		return new AssertingSpan() {
 			@Override
 			public DocumentedSpan getDocumentedSpan() {

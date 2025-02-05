@@ -22,6 +22,9 @@ import org.springframework.cloud.sleuth.SpanCustomizer;
 
 import static java.util.Objects.requireNonNull;
 
+/**
+ * 基于不可变的{@link AssertingSpanCustomizer}实现
+ */
 class ImmutableAssertingSpanCustomizer implements AssertingSpanCustomizer {
 
 	private final DocumentedSpan documentedSpan;

@@ -34,8 +34,7 @@ import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.lang.NonNull;
 
 /**
- * {@link AsyncTaskExecutor} that wraps {@link Runnable} and {@link Callable} in a trace
- * representation.
+ * 用于支持跟踪的{@link AsyncTaskExecutor}实现。
  *
  * @author Marcin Grzejszczak
  * @since 2.1.0
@@ -43,18 +42,33 @@ import org.springframework.lang.NonNull;
 // public as most types in this package were documented for use
 public class LazyTraceAsyncTaskExecutor implements AsyncTaskExecutor {
 
-	private static final Map<AsyncTaskExecutor, LazyTraceAsyncTaskExecutor> CACHE = new ConcurrentHashMap<>();
+	private static final Map<AsyncTaskExecutor/* 原始的Executor */, LazyTraceAsyncTaskExecutor/* 被代理的对象 */> CACHE = new ConcurrentHashMap<>();
 
 	private static final Log log = LogFactory.getLog(LazyTraceAsyncTaskExecutor.class);
 
+	/**
+	 * Bean工厂
+	 */
 	private final BeanFactory beanFactory;
 
+	/**
+	 * 被包装的原始类
+	 */
 	private final AsyncTaskExecutor delegate;
 
+	/**
+	 * Bean名称
+	 */
 	private final String beanName;
 
+	/**
+	 * 跟踪器
+	 */
 	private Tracer tracing;
 
+	/**
+	 * Span命名器
+	 */
 	private SpanNamer spanNamer;
 
 	public LazyTraceAsyncTaskExecutor(BeanFactory beanFactory, AsyncTaskExecutor delegate) {
@@ -70,20 +84,21 @@ public class LazyTraceAsyncTaskExecutor implements AsyncTaskExecutor {
 	}
 
 	/**
-	 * Wraps the Executor in a trace instance.
-	 * @param beanFactory bean factory
+	 * 将原始的AsyncTaskExecutor保存到缓存中，并生成其对应的包装类{@link AsyncTaskExecutor}
+	 *
+	 * @param beanFactory 能够提供{@link Tracer}和{@link SpanNamer}的Bean工厂
 	 * @param delegate delegate to wrap
 	 * @param beanName bean name
 	 * @return traced instance
 	 */
-	public static LazyTraceAsyncTaskExecutor wrap(BeanFactory beanFactory, @NonNull AsyncTaskExecutor delegate,
-			String beanName) {
+	public static LazyTraceAsyncTaskExecutor wrap(BeanFactory beanFactory, @NonNull AsyncTaskExecutor delegate, String beanName) {
 		return CACHE.computeIfAbsent(delegate, e -> new LazyTraceAsyncTaskExecutor(beanFactory, delegate, beanName));
 	}
 
 	/**
-	 * Wraps the Executor in a trace instance.
-	 * @param beanFactory bean factory
+	 * 将原始的AsyncTaskExecutor保存到缓存中，并生成其对应的包装类{@link AsyncTaskExecutor}
+	 *
+	 * @param beanFactory 能够提供{@link Tracer}和{@link SpanNamer}的Bean工厂
 	 * @param delegate delegate to wrap
 	 * @return traced instance
 	 */
@@ -94,6 +109,7 @@ public class LazyTraceAsyncTaskExecutor implements AsyncTaskExecutor {
 	@Override
 	public void execute(Runnable task) {
 		Runnable taskToRun = task;
+		// 将Runnable包装为TraceRunnable
 		if (!ContextUtil.isContextUnusable(this.beanFactory)) {
 			taskToRun = new TraceRunnable(tracing(), spanNamer(), task, this.beanName);
 		}
@@ -103,6 +119,7 @@ public class LazyTraceAsyncTaskExecutor implements AsyncTaskExecutor {
 	@Override
 	public void execute(Runnable task, long startTimeout) {
 		Runnable taskToRun = task;
+		// 将Runnable包装为TraceRunnable
 		if (!ContextUtil.isContextUnusable(this.beanFactory)) {
 			taskToRun = new TraceRunnable(tracing(), spanNamer(), task, this.beanName);
 		}
@@ -112,6 +129,7 @@ public class LazyTraceAsyncTaskExecutor implements AsyncTaskExecutor {
 	@Override
 	public Future<?> submit(Runnable task) {
 		Runnable taskToRun = task;
+		// 将Runnable包装为TraceRunnable
 		if (!ContextUtil.isContextUnusable(this.beanFactory)) {
 			taskToRun = new TraceRunnable(tracing(), spanNamer(), task, this.beanName);
 		}
@@ -121,6 +139,7 @@ public class LazyTraceAsyncTaskExecutor implements AsyncTaskExecutor {
 	@Override
 	public <T> Future<T> submit(Callable<T> task) {
 		Callable<T> taskToRun = task;
+		// 将Callable包装为TraceCallable
 		if (!ContextUtil.isContextUnusable(this.beanFactory)) {
 			taskToRun = new TraceCallable<>(tracing(), spanNamer(), task, this.beanName);
 		}
@@ -128,6 +147,11 @@ public class LazyTraceAsyncTaskExecutor implements AsyncTaskExecutor {
 	}
 
 	// due to some race conditions trace keys might not be ready yet
+	/**
+	 * 需要注意的时候，即使不存在SpanNamer这个Bean，会返回{@link DefaultSpanNamer}作为兜底
+	 *
+	 * @return 返回Span名称生成器，如果不存在则从{@link BeanFactory#getBean(Class)}获取，如果BeanFactory中不存在，则返回{@link DefaultSpanNamer}
+	 */
 	private SpanNamer spanNamer() {
 		if (this.spanNamer == null) {
 			try {
@@ -141,6 +165,9 @@ public class LazyTraceAsyncTaskExecutor implements AsyncTaskExecutor {
 		return this.spanNamer;
 	}
 
+	/**
+	 * @return 返回跟踪器，如果不存在则从{@link BeanFactory#getBean(Class)}获取
+	 */
 	private Tracer tracing() {
 		if (this.tracing == null) {
 			try {

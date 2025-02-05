@@ -28,11 +28,17 @@ import org.springframework.cloud.sleuth.SpanAndScope;
 import org.springframework.cloud.sleuth.Tracer;
 import org.springframework.cloud.sleuth.docs.AssertingSpan;
 
+/**
+ * 用于支持跟踪的{@link JobExecutionListener}实现
+ */
 class TraceJobExecutionListener implements JobExecutionListener {
 
+	/**
+	 * 跟踪器
+	 */
 	private final Tracer tracer;
 
-	private static final Map<JobExecution, SpanAndScope> SPANS = new ConcurrentHashMap<>();
+	private static final Map<JobExecution/* 原始的JobExecution */, SpanAndScope/* 具有范围的Span */> SPANS = new ConcurrentHashMap<>();
 
 	TraceJobExecutionListener(Tracer tracer) {
 		this.tracer = tracer;
@@ -40,34 +46,41 @@ class TraceJobExecutionListener implements JobExecutionListener {
 
 	@Override
 	public void beforeJob(JobExecution jobExecution) {
-		Span span = SleuthBatchSpan.BATCH_JOB_SPAN.wrap(this.tracer.nextSpan())
-				.name(jobExecution.getJobInstance().getJobName());
+		// 构造下一个Span，并以jobName作为Span的名称
+		Span span = SleuthBatchSpan.BATCH_JOB_SPAN.wrap(this.tracer.nextSpan()).name(jobExecution.getJobInstance().getJobName());
+		// 开始Span，并设置为当前Span
 		Tracer.SpanInScope spanInScope = this.tracer.withSpan(span.start());
+		// 保存到缓存
 		SPANS.put(jobExecution, new SpanAndScope(span, spanInScope));
 	}
 
 	@Override
 	public void afterJob(JobExecution jobExecution) {
+		// 获取该Job执行对应的Span
 		SpanAndScope spanAndScope = SPANS.remove(jobExecution);
+		// 获取执行异常
 		List<Throwable> throwables = jobExecution.getFailureExceptions();
 		// @formatter:off
+		// 获取Span，并写入标签：{@code batch.job.name}=jobName, {@code batch.job.instanceId}=instanceId, {@code batch.job.executionId}=executionId
 		AssertingSpan span = SleuthBatchSpan.BATCH_JOB_SPAN.wrap(spanAndScope.getSpan())
-		.tag(SleuthBatchSpan.JobTags.JOB_NAME, jobExecution.getJobInstance().getJobName())
-		.tag(SleuthBatchSpan.JobTags.JOB_INSTANCE_ID,
-				String.valueOf(jobExecution.getJobInstance().getInstanceId()))
-		.tag(SleuthBatchSpan.JobTags.JOB_EXECUTION_ID, String.valueOf(jobExecution.getId()));
+			.tag(SleuthBatchSpan.JobTags.JOB_NAME, jobExecution.getJobInstance().getJobName())
+			.tag(SleuthBatchSpan.JobTags.JOB_INSTANCE_ID, String.valueOf(jobExecution.getJobInstance().getInstanceId()))
+			.tag(SleuthBatchSpan.JobTags.JOB_EXECUTION_ID, String.valueOf(jobExecution.getId()));
 		// formatter:on
+		// 获取Span范围
 		Tracer.SpanInScope scope = spanAndScope.getScope();
 		if (!throwables.isEmpty()) {
+			// 写入异常
 			span.error(mergedThrowables(throwables));
 		}
+		// 结束Span
 		span.end();
+		// 结束范围
 		scope.close();
 	}
 
 	private IllegalStateException mergedThrowables(List<Throwable> throwables) {
-		return new IllegalStateException(
-				throwables.stream().map(Throwable::toString).collect(Collectors.joining("\n")));
+		return new IllegalStateException(throwables.stream().map(Throwable::toString).collect(Collectors.joining("\n")));
 	}
 
 }

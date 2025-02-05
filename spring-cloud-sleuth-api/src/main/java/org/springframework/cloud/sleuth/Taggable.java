@@ -18,7 +18,7 @@ package org.springframework.cloud.sleuth;
 
 /**
  *
- * Describes the behaviour of an object that can be tagged.
+ * 描述可被标记的对象的行为。
  *
  * @author Marcin Grzejszczak
  * @since 3.0.3
@@ -26,7 +26,8 @@ package org.springframework.cloud.sleuth;
 public interface Taggable {
 
 	/**
-	 * Sets a tag.
+	 * 设置一个标签
+	 *
 	 * @param key tag key
 	 * @param value tag value
 	 * @return this, for chaining

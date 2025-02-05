@@ -19,11 +19,9 @@ package org.springframework.cloud.sleuth.http;
 import org.springframework.cloud.sleuth.Span;
 
 /**
- * This API is taken from OpenZipkin Brave.
+ * 此API取自OpenZipkin Brave
  *
- * This standardizes a way to instrument http servers, particularly in a way that
- * encourages use of portable customizations via {@link HttpRequestParser} and
- * {@link HttpResponseParser}.
+ * <p>标准化了一种检测http服务端的方法，特别是鼓励通过{@link HttpRequestParser}和{@link HttpResponseParser}使用可移植定制的方式。
  *
  * @author OpenZipkin Brave Authors
  * @author Marcin Grzejszczak
@@ -32,16 +30,16 @@ import org.springframework.cloud.sleuth.Span;
 public interface HttpServerHandler {
 
 	/**
-	 * Conditionally joins a span, or starts a new trace, depending on if a trace context
-	 * was extracted from the request. Tags are added before the span is started.
+	 * 根据是否从请求中提取了跟踪上下文，有条件的加入Span或开始新的Tracer。在Span开始之前加入标签。
+	 *
 	 * @param request HTTP request
-	 * @return server side span (either joined or a new trace)
+	 * @return 服务端侧Span (either joined or a new trace)
 	 */
 	Span handleReceive(HttpServerRequest request);
 
 	/**
-	 * Finishes the server span after assigning it tags according to the response or
-	 * error.
+	 * 根据响应或错误分配标签后完成服务端Span
+	 *
 	 * @param response HTTP response
 	 * @param span server side span to end
 	 */
