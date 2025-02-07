@@ -19,8 +19,7 @@ package org.springframework.cloud.sleuth.brave.instrument.grpc;
 import io.grpc.ManagedChannelBuilder;
 
 /**
- * Callback interface that can be implemented by beans wishing to further customize the
- * {@link io.grpc.ManagedChannelBuilder} via the {@link SpringAwareManagedChannelBuilder}.
+ * 用于为希望通过{@link SpringAwareManagedChannelBuilder}定制{@link ManagedChannelBuilder}的回调接口
  *
  * @author Tyler Van Gorder
  * @since 3.0.0

@@ -26,7 +26,7 @@ import org.springframework.cloud.sleuth.http.HttpClientRequest;
 import org.springframework.cloud.sleuth.http.HttpClientResponse;
 
 /**
- * Brave implementation of a {@link HttpClientHandler}.
+ * 基于Brave实现的{@link HttpClientHandler}
  *
  * @author Marcin Grzejszczak
  * @since 3.0.0
@@ -35,10 +35,12 @@ public class BraveHttpClientHandler implements HttpClientHandler {
 
 	private static final Log log = LogFactory.getLog(BraveHttpClientHandler.class);
 
+	/**
+	 * Brave的HttpClientHandler
+	 */
 	final brave.http.HttpClientHandler<brave.http.HttpClientRequest, brave.http.HttpClientResponse> delegate;
 
-	public BraveHttpClientHandler(
-			brave.http.HttpClientHandler<brave.http.HttpClientRequest, brave.http.HttpClientResponse> delegate) {
+	public BraveHttpClientHandler(brave.http.HttpClientHandler<brave.http.HttpClientRequest, brave.http.HttpClientResponse> delegate) {
 		this.delegate = delegate;
 	}
 
@@ -49,9 +51,9 @@ public class BraveHttpClientHandler implements HttpClientHandler {
 
 	@Override
 	public Span handleSend(HttpClientRequest request, TraceContext parent) {
-		brave.Span span = this.delegate.handleSendWithParent(BraveHttpClientRequest.toBrave(request),
-				BraveTraceContext.toBrave(parent));
+		brave.Span span = this.delegate.handleSendWithParent(BraveHttpClientRequest.toBrave(request), BraveTraceContext.toBrave(parent));
 		if (!span.isNoop()) {
+			// 对于非Noop的Span，设置远程ip和端口
 			span.remoteIpAndPort(request.remoteIp(), request.remotePort());
 		}
 		return BraveSpan.fromBrave(span);
@@ -63,8 +65,10 @@ public class BraveHttpClientHandler implements HttpClientHandler {
 			if (log.isDebugEnabled()) {
 				log.debug("Response is null, will not handle receiving of span [" + span + "]");
 			}
+			// 不处理空响应
 			return;
 		}
+		// 使用底层处理响应
 		this.delegate.handleReceive(BraveHttpClientResponse.toBrave(response), BraveSpan.toBrave(span));
 	}
 

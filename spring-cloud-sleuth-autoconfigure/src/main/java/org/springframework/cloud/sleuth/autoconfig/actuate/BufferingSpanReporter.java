@@ -27,17 +27,26 @@ import org.springframework.cloud.sleuth.exporter.FinishedSpan;
 import org.springframework.cloud.sleuth.exporter.SpanReporter;
 
 /**
- * A {@link SpanReporter} that buffers finished spans.
+ * 缓冲最终Span的{@link SpanReporter}
  *
  * @author Marcin Grzejszczak
  * @since 3.1.0
  */
 public class BufferingSpanReporter implements SpanReporter {
 
+	/**
+	 * 缓存最大容量
+	 */
 	private final int capacity;
 
+	/**
+	 * 预计大小
+	 */
 	private final AtomicInteger estimatedSize = new AtomicInteger();
 
+	/**
+	 * 用于保存最终Span的队列
+	 */
 	final ConcurrentLinkedQueue<FinishedSpan> spans = new ConcurrentLinkedQueue<>();
 
 	public BufferingSpanReporter(int capacity) {
@@ -45,22 +54,20 @@ public class BufferingSpanReporter implements SpanReporter {
 	}
 
 	/**
-	 * Return a snapshot of currently buffered spans.
-	 * <p>
-	 * This will not remove spans from the buffer, see {@link #drainFinishedSpans()} ()}
-	 * for its counterpart.
-	 * @return a snapshot of currently buffered spans.
+	 * 该操作将不会将Span从缓冲区移除。{@link #drainFinishedSpans()}
+	 *
+	 * @return 当前缓存Span的镜像
 	 */
 	public List<FinishedSpan> getFinishedSpans() {
 		return new ArrayList<>(this.spans);
 	}
 
 	/**
-	 * Return the {@link StartupTimeline timeline} by pulling spans from the buffer.
-	 * <p>
-	 * This removes steps from the buffer, see {@link #getFinishedSpans()} for its
-	 * read-only counterpart.
-	 * @return buffered steps drained from the buffer.
+	 * 通过从缓冲区拉取Span来返回{@link StartupTimeline}
+	 *
+	 * <p>该操作会将Span从缓冲区中移除.{@link #getFinishedSpans()}
+	 *
+	 * @return 缓冲步骤从缓冲区中排出
 	 */
 	public List<FinishedSpan> drainFinishedSpans() {
 		List<FinishedSpan> events = new ArrayList<>();
@@ -69,6 +76,7 @@ public class BufferingSpanReporter implements SpanReporter {
 			events.add(iterator.next());
 			iterator.remove();
 		}
+		// 重置计数器
 		this.estimatedSize.set(0);
 		return events;
 	}
@@ -76,10 +84,16 @@ public class BufferingSpanReporter implements SpanReporter {
 	@Override
 	public void report(FinishedSpan span) {
 		if (this.estimatedSize.get() < this.capacity) {
+			/**
+			 * 如果尚未超过缓冲上限，则放入到缓存中，并增加计数
+			 */
 			this.estimatedSize.incrementAndGet();
 			this.spans.add(span);
 		}
 		else {
+			/**
+			 * 移除最早的元素，减少计数，并重新执行放入操作
+			 */
 			this.spans.poll();
 			this.estimatedSize.decrementAndGet();
 			report(span);

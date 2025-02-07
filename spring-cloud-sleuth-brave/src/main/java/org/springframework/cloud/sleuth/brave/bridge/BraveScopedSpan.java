@@ -22,13 +22,16 @@ import org.springframework.cloud.sleuth.ScopedSpan;
 import org.springframework.cloud.sleuth.TraceContext;
 
 /**
- * Brave implementation of a {@link ScopedSpan}.
+ * 基于Brave实现的{@link ScopedSpan}
  *
  * @author Marcin Grzejszczak
  * @since 3.0.0
  */
 class BraveScopedSpan implements ScopedSpan {
 
+	/**
+	 * Brave的ScopedSpan
+	 */
 	final brave.ScopedSpan span;
 
 	BraveScopedSpan(brave.ScopedSpan span) {

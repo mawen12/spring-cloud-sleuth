@@ -35,21 +35,29 @@ import org.springframework.cloud.sleuth.brave.propagation.PropagationFactorySupp
 import org.springframework.cloud.sleuth.brave.propagation.PropagationType;
 
 /**
- * Merges various propagation factories into a composite.
+ * 将各种传播工厂合并为一个复合体
  *
  * @author Marcin Grzejszczak
  * @since 3.0.0
  */
 public class CompositePropagationFactorySupplier implements PropagationFactorySupplier {
 
+	/**
+	 * Bean工厂
+	 */
 	private final BeanFactory beanFactory;
 
+	/**
+	 * 本地字段列表
+	 */
 	private final List<String> localFields;
 
+	/**
+	 * 传播类型列表
+	 */
 	private final List<PropagationType> types;
 
-	public CompositePropagationFactorySupplier(BeanFactory beanFactory, List<String> localFields,
-			List<PropagationType> types) {
+	public CompositePropagationFactorySupplier(BeanFactory beanFactory, List<String> localFields, List<PropagationType> types) {
 		this.beanFactory = beanFactory;
 		this.localFields = localFields;
 		this.types = types;
@@ -64,6 +72,9 @@ public class CompositePropagationFactorySupplier implements PropagationFactorySu
 
 }
 
+/**
+ * 复合的传播类型工厂
+ */
 class CompositePropagationFactory extends Propagation.Factory implements Propagation<String> {
 
 	private final Map<PropagationType, Map.Entry<Propagation.Factory, Propagation<String>>> mapping = new HashMap<>();

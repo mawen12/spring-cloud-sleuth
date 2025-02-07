@@ -27,13 +27,16 @@ import org.springframework.cloud.sleuth.TraceContext;
 import org.springframework.cloud.sleuth.propagation.Propagator;
 
 /**
- * Brave implementation of a {@link Propagator}.
+ * 基于Brave实现的{@link Propagator}
  *
  * @author Marcin Grzejszczak
  * @since 3.0.0
  */
 public class BravePropagator implements Propagator {
 
+	/**
+	 * Brave的Tracing
+	 */
 	private final Tracing tracing;
 
 	public BravePropagator(Tracing tracing) {

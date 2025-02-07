@@ -22,7 +22,7 @@ import org.springframework.cloud.sleuth.SamplerFunction;
 import org.springframework.cloud.sleuth.http.HttpRequest;
 
 /**
- * Brave implementation of a {@link SamplerFunction}.
+ * 基于Brave实现的{@link SamplerFunction}
  *
  * @param <T> type of the input, for example a request or method
  * @author Marcin Grzejszczak
@@ -30,6 +30,9 @@ import org.springframework.cloud.sleuth.http.HttpRequest;
  */
 public final class BraveSamplerFunction<T> implements SamplerFunction<T> {
 
+	/**
+	 * Brave的SamplerFunction
+	 */
 	final brave.sampler.SamplerFunction<T> samplerFunction;
 
 	public BraveSamplerFunction(brave.sampler.SamplerFunction<T> samplerFunction) {

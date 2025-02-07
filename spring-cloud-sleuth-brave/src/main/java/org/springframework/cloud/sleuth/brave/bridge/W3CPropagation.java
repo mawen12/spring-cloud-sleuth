@@ -44,13 +44,13 @@ import org.springframework.util.StringUtils;
 import static java.util.Collections.singletonList;
 
 /**
- * Adopted from OpenTelemetry API.
+ * 从 OpenTelemetry API中采用
  *
- * Implementation of the TraceContext propagation protocol. See <a
- * href=https://github.com/w3c/distributed-tracing>w3c/distributed-tracing</a>.
+ * <p>TraceContext 传播协议的实现
  *
  * @author OpenTelemetry Authors
  * @author Marcin Grzejszczak
+ * @see https://github.com/w3c/distributed-tracing
  * @since 3.0.0
  */
 class W3CPropagation extends Propagation.Factory implements Propagation<String> {
@@ -180,8 +180,7 @@ class W3CPropagation extends Propagation.Factory implements Propagation<String> 
 	private String padLeftWithZeros(String string, int length) {
 		if (string.length() >= length) {
 			return string;
-		}
-		else {
+		} else {
 			StringBuilder sb = new StringBuilder(length);
 			for (int i = string.length(); i < length; i++) {
 				sb.append('0');
@@ -214,7 +213,7 @@ class W3CPropagation extends Propagation.Factory implements Propagation<String> 
 	}
 
 	private <R> TraceContextOrSamplingFlags withBaggage(TraceContextOrSamplingFlags context, R carrier,
-			Getter<R, String> getter) {
+														Getter<R, String> getter) {
 		if (context.context() == null) {
 			return context;
 		}
@@ -231,8 +230,7 @@ class W3CPropagation extends Propagation.Factory implements Propagation<String> 
 							.traceIdHigh(contextFromParentHeader.traceIdHigh()).spanId(contextFromParentHeader.spanId())
 							.sampled(contextFromParentHeader.sampled()).shared(true).build())
 					.build();
-		}
-		catch (IllegalArgumentException e) {
+		} catch (IllegalArgumentException e) {
 			logger.info("Unparseable tracestate header. Returning span context without state.");
 			return TraceContextOrSamplingFlags.create(contextFromParentHeader);
 		}
@@ -253,7 +251,7 @@ class W3CPropagation extends Propagation.Factory implements Propagation<String> 
 		// for the version the length is the expected one?
 		boolean isValid = (traceparent.length() == TRACEPARENT_HEADER_SIZE
 				|| (traceparent.length() > TRACEPARENT_HEADER_SIZE
-						&& traceparent.charAt(TRACEPARENT_HEADER_SIZE) == TRACEPARENT_DELIMITER))
+				&& traceparent.charAt(TRACEPARENT_HEADER_SIZE) == TRACEPARENT_DELIMITER))
 				&& traceparent.charAt(TRACE_ID_OFFSET - 1) == TRACEPARENT_DELIMITER
 				&& traceparent.charAt(SPAN_ID_OFFSET - 1) == TRACEPARENT_DELIMITER
 				&& traceparent.charAt(TRACE_OPTION_OFFSET - 1) == TRACEPARENT_DELIMITER;
@@ -284,8 +282,7 @@ class W3CPropagation extends Propagation.Factory implements Propagation<String> 
 						.build();
 			}
 			return null;
-		}
-		catch (IllegalArgumentException e) {
+		} catch (IllegalArgumentException e) {
 			logger.info("Unparseable traceparent header. Returning INVALID span context.");
 			return null;
 		}
@@ -360,7 +357,7 @@ class W3CBaggagePropagator {
 	}
 
 	<R> TraceContextOrSamplingFlags contextWithBaggage(R carrier, TraceContextOrSamplingFlags flags,
-			Propagation.Getter<R, String> getter) {
+													   Propagation.Getter<R, String> getter) {
 		BaggagePropagation.FactoryBuilder factoryBuilder = factory();
 		String traceState = getter.get(carrier, TRACE_STATE);
 		boolean hasTraceState = StringUtils.hasText(traceState);
@@ -403,8 +400,7 @@ class W3CBaggagePropagator {
 					String value = keyAndValue[i + 1].trim();
 					BaggageInScope baggage = this.braveBaggageManager.createBaggage(key);
 					pairs.add(new AbstractMap.SimpleEntry<>(baggage, value));
-				}
-				catch (Exception e) {
+				} catch (Exception e) {
 					if (log.isDebugEnabled()) {
 						log.debug("Exception occurred while trying to parse baggage with key value ["
 								+ Arrays.toString(keyAndValue) + "]. Will ignore that entry.", e);
@@ -443,8 +439,7 @@ final class TemporaryBuffers {
 		if (buffer == null) {
 			buffer = new char[len];
 			CHAR_ARRAY.set(buffer);
-		}
-		else if (buffer.length < len) {
+		} else if (buffer.length < len) {
 			buffer = new char[len];
 			CHAR_ARRAY.set(buffer);
 		}
@@ -472,7 +467,9 @@ final class TraceFlags {
 	// Bit to represent whether trace is sampled or not.
 	static final byte IS_SAMPLED = 0x1;
 
-	/** Extract the byte representation of the flags from a hex-representation. */
+	/**
+	 * Extract the byte representation of the flags from a hex-representation.
+	 */
 	static byte byteFromHex(CharSequence src, int srcOffset) {
 		return EncodingUtils.byteFromBase16String(src, srcOffset);
 	}

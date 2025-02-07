@@ -22,13 +22,16 @@ import org.springframework.cloud.sleuth.http.HttpRequest;
 import org.springframework.cloud.sleuth.http.HttpRequestParser;
 
 /**
- * Brave implementation of a {@link HttpRequestParser}.
+ * 基于Brave实现的{@link HttpRequestParser}
  *
  * @author Marcin Grzejszczak
  * @since 3.0.0
  */
 public class BraveHttpRequestParser implements HttpRequestParser {
 
+	/**
+	 * Brave的HttpRequestParser
+	 */
 	final brave.http.HttpRequestParser delegate;
 
 	public BraveHttpRequestParser(brave.http.HttpRequestParser delegate) {
@@ -37,8 +40,8 @@ public class BraveHttpRequestParser implements HttpRequestParser {
 
 	@Override
 	public void parse(HttpRequest request, TraceContext context, SpanCustomizer span) {
-		this.delegate.parse(BraveHttpRequest.toBrave(request), BraveTraceContext.toBrave(context),
-				BraveSpanCustomizer.toBrave(span));
+		// 使用Brave处理请求
+		this.delegate.parse(BraveHttpRequest.toBrave(request), BraveTraceContext.toBrave(context), BraveSpanCustomizer.toBrave(span));
 	}
 
 	/**
@@ -49,8 +52,7 @@ public class BraveHttpRequestParser implements HttpRequestParser {
 		if (parser instanceof BraveHttpRequestParser) {
 			return ((BraveHttpRequestParser) parser).delegate;
 		}
-		return (request, context, span) -> parser.parse(BraveHttpRequest.fromBrave(request),
-				BraveTraceContext.fromBrave(context), BraveSpanCustomizer.fromBrave(span));
+		return (request, context, span) -> parser.parse(BraveHttpRequest.fromBrave(request), BraveTraceContext.fromBrave(context), BraveSpanCustomizer.fromBrave(span));
 	}
 
 }

@@ -27,13 +27,16 @@ import org.springframework.cloud.sleuth.http.HttpServerRequest;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
 /**
- * Brave implementation of a {@link HttpServerRequest}.
+ * 基于Brave实现的{@link HttpServerRequest}
  *
  * @author Marcin Grzejszczak
  * @since 3.0.0
  */
 class BraveHttpServerRequest implements HttpServerRequest {
 
+	/**
+	 * Brave的HttpServerRequest
+	 */
 	final brave.http.HttpServerRequest delegate;
 
 	BraveHttpServerRequest(brave.http.HttpServerRequest delegate) {

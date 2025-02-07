@@ -25,10 +25,19 @@ import brave.propagation.ThreadLocalCurrentTraceContext;
 import org.springframework.cloud.sleuth.CurrentTraceContext;
 import org.springframework.cloud.sleuth.TraceContext;
 
+/**
+ * 基于Brave的{@link CurrentTraceContext}实现
+ */
 public class BraveCurrentTraceContext implements CurrentTraceContext {
 
+	/**
+	 * 使用线程本地来保存Scope信息
+	 */
 	final ThreadLocal<Scope> scopes = new ThreadLocal<>();
 
+	/**
+	 * Brave的CurrentTraceContext
+	 */
 	final brave.propagation.CurrentTraceContext delegate;
 
 	public BraveCurrentTraceContext(brave.propagation.CurrentTraceContext delegate) {
@@ -37,16 +46,20 @@ public class BraveCurrentTraceContext implements CurrentTraceContext {
 
 	@Override
 	public TraceContext context() {
+		// 获取Brave的TraceContext
 		brave.propagation.TraceContext context = this.delegate.get();
+		// 如果不为空，则基于此上下文创建新的上下文，否则返回null
 		return context == null ? null : new BraveTraceContext(context);
 	}
 
 	@Override
 	public CurrentTraceContext.Scope newScope(TraceContext context) {
 		if (context == null) {
+			// 上下文不存在时，清理线程本地
 			clearScopes();
 			return Scope.NOOP;
 		}
+		// 构造恢复范围
 		return new RevertingScope(this, new BraveScope(this.delegate.newScope(BraveTraceContext.toBrave(context))));
 	}
 
@@ -60,12 +73,15 @@ public class BraveCurrentTraceContext implements CurrentTraceContext {
 	}
 
 	private void clearScopes() {
+		// 获取当前范围
 		Scope current = this.scopes.get();
+		// 巡检检查并关闭
 		while (current != null) {
 			current.close();
 			current = this.scopes.get();
 		}
 		if (this.delegate instanceof ThreadLocalCurrentTraceContext) {
+			// 清理线程本地
 			((ThreadLocalCurrentTraceContext) this.delegate).clear();
 		}
 	}
@@ -123,6 +139,9 @@ class RevertingScope implements CurrentTraceContext.Scope {
 
 }
 
+/**
+ * 基于Brave实现的{@link org.springframework.cloud.sleuth.CurrentTraceContext.Scope}
+ */
 class BraveScope implements CurrentTraceContext.Scope {
 
 	private final brave.propagation.CurrentTraceContext.Scope delegate;

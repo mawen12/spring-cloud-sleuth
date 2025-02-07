@@ -22,13 +22,16 @@ import org.springframework.cloud.sleuth.TraceContext;
 import org.springframework.lang.Nullable;
 
 /**
- * Brave implementation of a {@link TraceContext}.
+ * 基于Brave实现的{@link TraceContext}
  *
  * @author Marcin Grzejszczak
  * @since 3.0.0
  */
 public class BraveTraceContext implements TraceContext {
 
+	/**
+	 * Brave的TraceContext
+	 */
 	final brave.propagation.TraceContext traceContext;
 
 	public BraveTraceContext(brave.propagation.TraceContext traceContext) {
@@ -61,6 +64,12 @@ public class BraveTraceContext implements TraceContext {
 		return this.traceContext != null ? this.traceContext.toString() : "null";
 	}
 
+	/**
+	 * 将Sleuth的TraceContext转换为Brave的TraceContext
+	 *
+	 * @param traceContext Sleuth的TraceContext
+	 * @return Brave的TraceContext
+	 */
 	public static brave.propagation.TraceContext toBrave(TraceContext traceContext) {
 		if (traceContext == null) {
 			return null;
@@ -68,6 +77,12 @@ public class BraveTraceContext implements TraceContext {
 		return ((BraveTraceContext) traceContext).traceContext;
 	}
 
+	/**
+	 * 将Brave的TraceContext转换为Sleuth的TraceContext
+	 *
+	 * @param traceContext Brave的TraceContext
+	 * @return Sleuth的TraceContext
+	 */
 	public static TraceContext fromBrave(brave.propagation.TraceContext traceContext) {
 		return new BraveTraceContext(traceContext);
 	}

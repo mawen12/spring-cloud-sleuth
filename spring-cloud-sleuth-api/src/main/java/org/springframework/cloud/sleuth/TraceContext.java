@@ -27,23 +27,18 @@ import org.springframework.lang.Nullable;
 public interface TraceContext {
 
 	/**
-	 * Span的跟踪ID
-	 *
-	 * @return trace id of a span
+	 * @return Span的跟踪ID
 	 */
 	String traceId();
 
 	/**
-	 * 父级Span的ID
-	 *
-	 * @return parent span id or {@code null} if one is not set
+	 * @return 父级Span的ID
 	 */
 	@Nullable
 	String parentId();
 
 	/**
-	 * Span的ID
-	 * @return span id
+	 * @return Span的ID
 	 */
 	String spanId();
 

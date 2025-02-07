@@ -20,13 +20,16 @@ import org.springframework.cloud.sleuth.SpanCustomizer;
 import org.springframework.cloud.sleuth.docs.AssertingSpanCustomizer;
 
 /**
- * Brave implementation of a {@link SpanCustomizer}.
+ * 基于Brave实现的{@link SpanCustomizer}
  *
  * @author Marcin Grzejszczak
  * @since 3.0.0
  */
 public class BraveSpanCustomizer implements SpanCustomizer {
 
+	/**
+	 * Brave的SpanCustomizer
+	 */
 	private final brave.SpanCustomizer spanCustomizer;
 
 	public BraveSpanCustomizer(brave.SpanCustomizer spanCustomizer) {

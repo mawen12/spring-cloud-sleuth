@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
 import org.springframework.beans.factory.annotation.Value;
 
 /**
- * Injects the service name for this application.
+ * 指示应用的服务名称
  *
  * @author Marcin Grzejszczak
  * @since 2.2.0

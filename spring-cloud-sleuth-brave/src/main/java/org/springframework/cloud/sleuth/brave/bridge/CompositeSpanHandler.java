@@ -27,15 +27,21 @@ import org.springframework.cloud.sleuth.exporter.SpanFilter;
 import org.springframework.cloud.sleuth.exporter.SpanReporter;
 
 /**
- * Merges {@link SpanFilter}s and {@link SpanReporter}s into a {@link SpanHandler}.
+ * 将{@link SpanFilter}和{@link SpanReporter}合并到{@link SpanHandler}
  *
  * @author Marcin Grzejszczak
  * @since 3.0.0
  */
 public class CompositeSpanHandler extends SpanHandler {
 
+	/**
+	 * Span过滤列表
+	 */
 	private final List<SpanFilter> filters;
 
+	/**
+	 * Span上报列表
+	 */
 	private final List<SpanReporter> reporters;
 
 	public CompositeSpanHandler(List<SpanFilter> filters, List<SpanReporter> reporters) {
@@ -46,20 +52,30 @@ public class CompositeSpanHandler extends SpanHandler {
 	@Override
 	public boolean end(TraceContext context, MutableSpan span, Cause cause) {
 		if (cause != Cause.FINISHED) {
+			// 未结束，返回true
 			return true;
 		}
+		// 是否应该处理Span
 		boolean shouldProcess = shouldProcess(span);
 		if (!shouldProcess) {
+			// Span不可上报，返回false
 			return false;
 		}
+		// 使用父类处理
 		shouldProcess = super.end(context, span, cause);
 		if (!shouldProcess) {
+			// 父类无法处理，返回false
 			return false;
 		}
+		// 按序执行上报
 		this.reporters.forEach(r -> r.report(BraveFinishedSpan.fromBrave(span)));
 		return true;
 	}
 
+	/**
+	 * @param span
+	 * @return {@link true} Span能够上报
+	 */
 	private boolean shouldProcess(MutableSpan span) {
 		for (SpanFilter exporter : this.filters) {
 			if (!exporter.isExportable(BraveFinishedSpan.fromBrave(span))) {

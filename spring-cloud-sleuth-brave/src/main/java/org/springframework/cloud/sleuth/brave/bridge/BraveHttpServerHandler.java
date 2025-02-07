@@ -22,17 +22,19 @@ import org.springframework.cloud.sleuth.http.HttpServerRequest;
 import org.springframework.cloud.sleuth.http.HttpServerResponse;
 
 /**
- * Brave implementation of a {@link HttpServerHandler}.
+ * 基于Brave实现的{@link HttpServerHandler}
  *
  * @author Marcin Grzejszczak
  * @since 3.0.0
  */
 public class BraveHttpServerHandler implements HttpServerHandler {
 
+	/**
+	 * Brave的HttpServerHandler
+	 */
 	final brave.http.HttpServerHandler<brave.http.HttpServerRequest, brave.http.HttpServerResponse> delegate;
 
-	public BraveHttpServerHandler(
-			brave.http.HttpServerHandler<brave.http.HttpServerRequest, brave.http.HttpServerResponse> delegate) {
+	public BraveHttpServerHandler(brave.http.HttpServerHandler<brave.http.HttpServerRequest, brave.http.HttpServerResponse> delegate) {
 		this.delegate = delegate;
 	}
 

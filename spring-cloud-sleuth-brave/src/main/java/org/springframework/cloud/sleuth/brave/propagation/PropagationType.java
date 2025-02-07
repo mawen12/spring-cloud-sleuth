@@ -17,7 +17,7 @@
 package org.springframework.cloud.sleuth.brave.propagation;
 
 /*
- * Supported propagation types.
+ * 支持的传播类型
  *
  * @author Marcin Grzejszczak
  * @since 3.0.0
@@ -25,23 +25,22 @@ package org.springframework.cloud.sleuth.brave.propagation;
 public enum PropagationType {
 
 	/**
-	 * AWS propagation type.
+	 * AWS传播类型
 	 */
 	AWS,
 
 	/**
-	 * B3 propagation type.
+	 * B3传播类型
 	 */
 	B3,
 
 	/**
-	 * W3C propagation type.
+	 * W3C传播类型
 	 */
 	W3C,
 
 	/**
-	 * Custom propagation type. If picked, requires bean registration overriding the
-	 * default propagation mechanisms.
+	 * 自定义传播类型。如果选择，则需要bean注册覆盖默认的传播机制
 	 */
 	CUSTOM
 

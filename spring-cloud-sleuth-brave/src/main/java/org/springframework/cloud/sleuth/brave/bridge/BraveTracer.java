@@ -63,18 +63,22 @@ public class BraveTracer implements Tracer {
 	@Override
 	public Span nextSpan(Span parent) {
 		if (parent == null) {
+			// 如果不存在父级，则创建一个没有父级的Span
 			return nextSpan();
 		}
+		// 获取跟踪上下文
 		brave.propagation.TraceContext context = (((BraveTraceContext) parent.context()).traceContext);
 		if (context == null) {
 			return null;
 		}
+		// 创建新的跟踪上下文，并以此创建新的Span
 		return new BraveSpan(this.tracer.nextSpan(TraceContextOrSamplingFlags.create(context)));
 	}
 
 	@Override
 	public SpanInScope withSpan(Span span) {
 		if (span == null) {
+			// 对于Span不存在的场景，无法创建
 			currentTraceContext.maybeScope(null);
 			return SpanInScope.NOOP;
 		}
@@ -147,6 +151,13 @@ public class BraveTracer implements Tracer {
 
 }
 
+/**
+ * 基于Brave实现的{@link org.springframework.cloud.sleuth.Tracer.SpanInScope}
+ *
+ * 持有可关闭资源，此类在执行结束时必须调用{@link #close()}方法。
+ *
+ * <p>使用try-with-resources来自动关闭
+ */
 class BraveSpanInScope implements Tracer.SpanInScope {
 
 	final Closeable delegate;

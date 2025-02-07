@@ -22,7 +22,7 @@ import org.springframework.cloud.sleuth.BaggageInScope;
 import org.springframework.cloud.sleuth.TraceContext;
 
 /**
- * Brave implementation of a {@link BaggageInScope}.
+ * 基于Brave实现的{@link BaggageInScope}
  *
  * @author Marcin Grzejszczak
  * @since 3.0.0

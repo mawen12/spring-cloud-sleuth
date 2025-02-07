@@ -24,13 +24,16 @@ import org.springframework.cloud.sleuth.http.HttpClientRequest;
 import org.springframework.cloud.sleuth.http.HttpClientResponse;
 
 /**
- * Brave implementation of a {@link HttpClientResponse}.
+ * 基于Brave实现的{@link HttpClientResponse}
  *
  * @author Marcin Grzejszczak
  * @since 3.0.0
  */
 class BraveHttpClientResponse implements HttpClientResponse {
 
+	/**
+	 * Brave的HttpClientResponse
+	 */
 	final brave.http.HttpClientResponse delegate;
 
 	BraveHttpClientResponse(brave.http.HttpClientResponse delegate) {

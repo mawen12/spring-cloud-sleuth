@@ -25,7 +25,7 @@ import org.springframework.cloud.sleuth.Span;
 import org.springframework.cloud.sleuth.exporter.FinishedSpan;
 
 /**
- * Brave implementation of a {@link FinishedSpan}.
+ * 基于Brave实现的{@link FinishedSpan}
  *
  * @author Marcin Grzejszczak
  * @since 3.0.0

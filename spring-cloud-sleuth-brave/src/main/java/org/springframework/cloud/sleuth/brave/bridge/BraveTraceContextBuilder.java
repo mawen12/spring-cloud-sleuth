@@ -20,13 +20,16 @@ import org.springframework.cloud.sleuth.TraceContext;
 import org.springframework.cloud.sleuth.internal.EncodingUtils;
 
 /**
- * Brave implementation of a {@link TraceContext.Builder}.
+ * 基于Brave实现的{@link TraceContext.Builder}
  *
  * @author Marcin Grzejszczak
  * @since 3.1.0
  */
 class BraveTraceContextBuilder implements TraceContext.Builder {
 
+	/**
+	 * Brave的TraceContext.Builder
+	 */
 	brave.propagation.TraceContext.Builder delegate = brave.propagation.TraceContext.newBuilder();
 
 	@Override

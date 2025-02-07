@@ -21,7 +21,7 @@ import zipkin2.codec.SpanBytesEncoder;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * Zipkin settings.
+ * Zipkin 配置
  *
  * @author Spencer Gibb
  * @since 1.0.0
